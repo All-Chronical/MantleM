@@ -1,0 +1,8 @@
+[application]
+
+config/name="MantleM Project"
+config/icon="res://icon.svg"
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
