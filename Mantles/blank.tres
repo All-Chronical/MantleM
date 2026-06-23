@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Mantle" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Resources/mantle.gd" id="1_mantle"]
+
+[resource]
+script = ExtResource("1_mantle")
+rigType = 0
+notes = PackedStringArray()
