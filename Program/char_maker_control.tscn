@@ -88,7 +88,7 @@ stretch = true
 own_world_3d = true
 world_3d = SubResource("World3D_5sad0")
 handle_input_locally = false
-size = Vector2i(381, 648)
+size = Vector2i(2, 2)
 render_target_update_mode = 4
 
 [node name="Node3D" parent="HBoxContainer/Viewport/SubViewportContainer/SubViewport" instance=ExtResource("1_or0s6")]
@@ -225,6 +225,60 @@ min_value = -10.0
 max_value = 10.0
 step = 0.1
 
+[node name="CubeScaleLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Cube Scale:"
+
+[node name="CubeScaleSliderContainer" type="VBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="XContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer"]
+layout_mode = 2
+
+[node name="XLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/XContainer"]
+layout_mode = 2
+text = "X"
+
+[node name="XSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/XContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 10.0
+step = 0.1
+value = 1.0
+
+[node name="YContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer"]
+layout_mode = 2
+
+[node name="YLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/YContainer"]
+layout_mode = 2
+text = "Y"
+
+[node name="YSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/YContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 10.0
+step = 0.1
+value = 1.0
+
+[node name="ZContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer"]
+layout_mode = 2
+
+[node name="ZLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/ZContainer"]
+layout_mode = 2
+text = "Z"
+
+[node name="ZSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/ZContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 10.0
+step = 0.1
+value = 1.0
+
 [node name="CubeColorLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
 visible = false
 layout_mode = 2
@@ -285,6 +339,60 @@ size_flags_horizontal = 3
 min_value = -10.0
 max_value = 10.0
 step = 0.1
+
+[node name="FlatScaleLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Flat Scale:"
+
+[node name="FlatScaleSliderContainer" type="VBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="XContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer"]
+layout_mode = 2
+
+[node name="XLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/XContainer"]
+layout_mode = 2
+text = "X"
+
+[node name="XSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/XContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 10.0
+step = 0.1
+value = 1.0
+
+[node name="YContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer"]
+layout_mode = 2
+
+[node name="YLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/YContainer"]
+layout_mode = 2
+text = "Y"
+
+[node name="YSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/YContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 10.0
+step = 0.1
+value = 1.0
+
+[node name="ZContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer"]
+layout_mode = 2
+
+[node name="ZLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/ZContainer"]
+layout_mode = 2
+text = "Z"
+
+[node name="ZSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/ZContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 10.0
+step = 0.1
+value = 1.0
 
 [node name="FlatColorLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
 visible = false

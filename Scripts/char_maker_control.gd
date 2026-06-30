@@ -37,6 +37,16 @@ const BASE_NODE_PATHS: Array[String] = [
 @onready var _flat_z_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer/ZContainer/ZSlider
 @onready var _flat_color_label: Label = $HBoxContainer/Inspector/VBoxContainer/FlatColorLabel
 @onready var _flat_color_picker: ColorPickerButton = $HBoxContainer/Inspector/VBoxContainer/FlatColorPicker
+@onready var _cube_scale_label: Label = $HBoxContainer/Inspector/VBoxContainer/CubeScaleLabel
+@onready var _cube_scale_slider_container: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer
+@onready var _cube_sx_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/XContainer/XSlider
+@onready var _cube_sy_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/YContainer/YSlider
+@onready var _cube_sz_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeScaleSliderContainer/ZContainer/ZSlider
+@onready var _flat_scale_label: Label = $HBoxContainer/Inspector/VBoxContainer/FlatScaleLabel
+@onready var _flat_scale_slider_container: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer
+@onready var _flat_sx_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/XContainer/XSlider
+@onready var _flat_sy_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/YContainer/YSlider
+@onready var _flat_sz_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/ZContainer/ZSlider
 
 var _base_nodes: Array[Node3D] = []
 var _bone_order_cache: Dictionary = {}
@@ -89,6 +99,12 @@ func _ready():
 	_flat_y_slider.value_changed.connect(_on_flat_slider_changed)
 	_flat_z_slider.value_changed.connect(_on_flat_slider_changed)
 	_flat_color_picker.color_changed.connect(_on_flat_color_changed)
+	_cube_sx_slider.value_changed.connect(_on_cube_scale_changed)
+	_cube_sy_slider.value_changed.connect(_on_cube_scale_changed)
+	_cube_sz_slider.value_changed.connect(_on_cube_scale_changed)
+	_flat_sx_slider.value_changed.connect(_on_flat_scale_changed)
+	_flat_sy_slider.value_changed.connect(_on_flat_scale_changed)
+	_flat_sz_slider.value_changed.connect(_on_flat_scale_changed)
 
 	_refresh_mantle_options()
 	_mantle_picker.item_selected.connect(_on_mantle_selected)
@@ -199,6 +215,20 @@ func _on_mantle_selected(id: int) -> void:
 	if _flat_positions.size() < _flat_count:
 		_flat_positions.resize(_flat_count)
 		_current_mantle.flatPositions = _flat_positions
+	var _cube_scales := _current_mantle.cubeScales
+	if _cube_scales.size() < _cube_count:
+		var _old_cube_scale_size := _cube_scales.size()
+		_cube_scales.resize(_cube_count)
+		for i in range(_old_cube_scale_size, _cube_count):
+			_cube_scales[i] = Vector3.ONE
+		_current_mantle.cubeScales = _cube_scales
+	var _flat_scales := _current_mantle.flatScales
+	if _flat_scales.size() < _flat_count:
+		var _old_flat_scale_size := _flat_scales.size()
+		_flat_scales.resize(_flat_count)
+		for i in range(_old_flat_scale_size, _flat_count):
+			_flat_scales[i] = Vector3.ONE
+		_current_mantle.flatScales = _flat_scales
 	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " notes_size=", _current_mantle.notes.size(), " shape_keys=", _current_mantle.shapeKeyValues.size())
 	_save_btn.disabled = false
 	_apply_base_color()
@@ -267,10 +297,16 @@ func _on_cube_selected(cube_idx: int) -> void:
 	_cube_y_slider.value = pos.y
 	_cube_z_slider.value = pos.z
 	_cube_color_picker.color = _current_mantle.cubeColors[cube_idx]
+	var scl: Vector3 = _current_mantle.cubeScales[cube_idx]
+	_cube_sx_slider.value = scl.x
+	_cube_sy_slider.value = scl.y
+	_cube_sz_slider.value = scl.z
 	_updating_attrs = false
 	_hide_all_attrs()
 	_cube_label.show()
 	_cube_slider_container.show()
+	_cube_scale_label.show()
+	_cube_scale_slider_container.show()
 	_cube_color_label.show()
 	_cube_color_picker.show()
 	_add_cube_btn.visible = false
@@ -289,10 +325,16 @@ func _on_flat_selected(flat_idx: int) -> void:
 	_flat_y_slider.value = pos.y
 	_flat_z_slider.value = pos.z
 	_flat_color_picker.color = _current_mantle.flatColors[flat_idx]
+	var scl: Vector3 = _current_mantle.flatScales[flat_idx]
+	_flat_sx_slider.value = scl.x
+	_flat_sy_slider.value = scl.y
+	_flat_sz_slider.value = scl.z
 	_updating_attrs = false
 	_hide_all_attrs()
 	_flat_label.show()
 	_flat_slider_container.show()
+	_flat_scale_label.show()
+	_flat_scale_slider_container.show()
 	_flat_color_label.show()
 	_flat_color_picker.show()
 	_add_cube_btn.visible = false
@@ -371,8 +413,11 @@ func _on_add_cube_pressed() -> void:
 	var colors := _current_mantle.cubeColors
 	colors.append(_current_mantle.baseColor)
 	_current_mantle.cubeColors = colors
+	var scales := _current_mantle.cubeScales
+	scales.append(Vector3.ONE)
+	_current_mantle.cubeScales = scales
 	var new_cube_idx: int = _current_mantle.cubeBoneIndices.size() - 1
-	_spawn_cube_mesh(new_cube_idx, bone_idx, Vector3.ZERO, _current_mantle.baseColor)
+	_spawn_cube_mesh(new_cube_idx, bone_idx, Vector3.ZERO, _current_mantle.baseColor, Vector3.ONE)
 	print("[Cube] added idx=", new_cube_idx, " bone_order_pos=", bone_order_pos)
 	_rebuild_hierarchy()
 	_select_cube_in_tree(new_cube_idx)
@@ -391,8 +436,11 @@ func _on_add_flat_pressed() -> void:
 	var colors := _current_mantle.flatColors
 	colors.append(_current_mantle.baseColor)
 	_current_mantle.flatColors = colors
+	var scales := _current_mantle.flatScales
+	scales.append(Vector3.ONE)
+	_current_mantle.flatScales = scales
 	var new_flat_idx: int = _current_mantle.flatBoneIndices.size() - 1
-	_spawn_flat_mesh(new_flat_idx, bone_idx, Vector3.FORWARD, _current_mantle.baseColor)
+	_spawn_flat_mesh(new_flat_idx, bone_idx, Vector3.UP, _current_mantle.baseColor, Vector3.ONE)
 	print("[Flat] added idx=", new_flat_idx, " bone_order_pos=", bone_order_pos)
 	_rebuild_hierarchy()
 	_select_flat_in_tree(new_flat_idx)
@@ -424,6 +472,9 @@ func _delete_cube(del_idx: int) -> void:
 	var colors := _current_mantle.cubeColors
 	colors.remove_at(del_idx)
 	_current_mantle.cubeColors = colors
+	var scales := _current_mantle.cubeScales
+	scales.remove_at(del_idx)
+	_current_mantle.cubeScales = scales
 	print("[Cube] deleted idx=", del_idx)
 	_selected_cube_idx = -1
 	_selected_part_type = 0
@@ -449,6 +500,9 @@ func _delete_flat(del_idx: int) -> void:
 	var colors := _current_mantle.flatColors
 	colors.remove_at(del_idx)
 	_current_mantle.flatColors = colors
+	var scales := _current_mantle.flatScales
+	scales.remove_at(del_idx)
+	_current_mantle.flatScales = scales
 	print("[Flat] deleted idx=", del_idx)
 	_selected_flat_idx = -1
 	_selected_part_type = 0
@@ -478,6 +532,17 @@ func _on_cube_color_changed(color: Color) -> void:
 		(_cube_meshes[_selected_cube_idx].material_override as StandardMaterial3D).albedo_color = color
 	print("[Cube] color updated idx=", _selected_cube_idx, " color=", color)
 
+func _on_cube_scale_changed(_value: float) -> void:
+	if _updating_attrs or _current_mantle == null or _selected_cube_idx < 0:
+		return
+	var scl := Vector3(_cube_sx_slider.value, _cube_sy_slider.value, _cube_sz_slider.value)
+	var scales := _current_mantle.cubeScales
+	scales[_selected_cube_idx] = scl
+	_current_mantle.cubeScales = scales
+	if _cube_meshes.has(_selected_cube_idx):
+		_cube_meshes[_selected_cube_idx].scale = scl
+	print("[Cube] scale updated idx=", _selected_cube_idx, " scale=", scl)
+
 func _on_flat_slider_changed(_value: float) -> void:
 	if _updating_attrs or _current_mantle == null or _selected_flat_idx < 0:
 		return
@@ -501,7 +566,18 @@ func _on_flat_color_changed(color: Color) -> void:
 		(_flat_meshes[_selected_flat_idx].material_override as StandardMaterial3D).albedo_color = color
 	print("[Flat] color updated idx=", _selected_flat_idx, " color=", color)
 
-func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3, color: Color) -> void:
+func _on_flat_scale_changed(_value: float) -> void:
+	if _updating_attrs or _current_mantle == null or _selected_flat_idx < 0:
+		return
+	var scl := Vector3(_flat_sx_slider.value, _flat_sy_slider.value, _flat_sz_slider.value)
+	var scales := _current_mantle.flatScales
+	scales[_selected_flat_idx] = scl
+	_current_mantle.flatScales = scales
+	if _flat_meshes.has(_selected_flat_idx):
+		_flat_meshes[_selected_flat_idx].scale = scl
+	print("[Flat] scale updated idx=", _selected_flat_idx, " scale=", scl)
+
+func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3, color: Color, scl: Vector3) -> void:
 	var attachment := BoneAttachment3D.new()
 	attachment.bone_idx = bone_idx
 	skeleton.add_child(attachment)
@@ -512,6 +588,7 @@ func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3, color: Color) 
 	mesh_inst.material_override = mat
 	attachment.add_child(mesh_inst)
 	mesh_inst.global_position = attachment.global_position + pos
+	mesh_inst.scale = scl
 	_cube_meshes[cube_idx] = mesh_inst
 
 func _spawn_all_cube_meshes() -> void:
@@ -525,9 +602,10 @@ func _spawn_all_cube_meshes() -> void:
 		var bone_idx: int = _current_bone_order[order_pos]
 		var pos: Vector3 = _current_mantle.cubePositions[i]
 		var color: Color = _current_mantle.cubeColors[i]
-		_spawn_cube_mesh(i, bone_idx, pos, color)
+		var scl: Vector3 = _current_mantle.cubeScales[i]
+		_spawn_cube_mesh(i, bone_idx, pos, color, scl)
 
-func _spawn_flat_mesh(flat_idx: int, bone_idx: int, pos: Vector3, color: Color) -> void:
+func _spawn_flat_mesh(flat_idx: int, bone_idx: int, pos: Vector3, color: Color, scl: Vector3) -> void:
 	var attachment := BoneAttachment3D.new()
 	attachment.bone_idx = bone_idx
 	skeleton.add_child(attachment)
@@ -537,8 +615,9 @@ func _spawn_flat_mesh(flat_idx: int, bone_idx: int, pos: Vector3, color: Color) 
 	mat.albedo_color = color
 	mesh_inst.material_override = mat
 	attachment.add_child(mesh_inst)
-	mesh_inst.global_rotate(Vector3.RIGHT, 90)
+	mesh_inst.global_rotate(Vector3.RIGHT, deg_to_rad(90))
 	mesh_inst.global_position = attachment.global_position + pos
+	mesh_inst.scale = scl
 	_flat_meshes[flat_idx] = mesh_inst
 
 func _spawn_all_flat_meshes() -> void:
@@ -552,7 +631,8 @@ func _spawn_all_flat_meshes() -> void:
 		var bone_idx: int = _current_bone_order[order_pos]
 		var pos: Vector3 = _current_mantle.flatPositions[i]
 		var color: Color = _current_mantle.flatColors[i]
-		_spawn_flat_mesh(i, bone_idx, pos, color)
+		var scl: Vector3 = _current_mantle.flatScales[i]
+		_spawn_flat_mesh(i, bone_idx, pos, color, scl)
 
 func _select_cube_in_tree(cube_idx: int) -> void:
 	var root := hierarchyList.get_root()
@@ -638,10 +718,14 @@ func _hide_all_attrs() -> void:
 	_shape_key_container.hide()
 	_cube_label.hide()
 	_cube_slider_container.hide()
+	_cube_scale_label.hide()
+	_cube_scale_slider_container.hide()
 	_cube_color_label.hide()
 	_cube_color_picker.hide()
 	_flat_label.hide()
 	_flat_slider_container.hide()
+	_flat_scale_label.hide()
+	_flat_scale_slider_container.hide()
 	_flat_color_label.hide()
 	_flat_color_picker.hide()
 
