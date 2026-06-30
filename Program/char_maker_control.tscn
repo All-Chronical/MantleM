@@ -18,16 +18,22 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_xq6uu")
-hierarchyList = NodePath("Hierarchy/Tree")
+hierarchyList = NodePath("HBoxContainer/Hierarchy/Tree")
 
-[node name="Hierarchy" type="Panel" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 9
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 234.0
+grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Tree" type="Tree" parent="Hierarchy"]
+[node name="Hierarchy" type="Panel" parent="HBoxContainer"]
+custom_minimum_size = Vector2(3.05, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Tree" type="Tree" parent="HBoxContainer/Hierarchy"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,17 +42,55 @@ offset_right = -26.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Inspector" type="Panel" parent="."]
+[node name="Viewport" type="Panel" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/Viewport"]
+clip_contents = true
 layout_mode = 1
-anchors_preset = 11
-anchor_left = 1.0
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -202.0
-grow_horizontal = 0
+grow_horizontal = 2
 grow_vertical = 2
+stretch = true
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Inspector"]
+[node name="SubViewport" type="SubViewport" parent="HBoxContainer/Viewport/SubViewportContainer"]
+own_world_3d = true
+world_3d = SubResource("World3D_5sad0")
+handle_input_locally = false
+size = Vector2i(381, 648)
+render_target_update_mode = 4
+
+[node name="Node3D" parent="HBoxContainer/Viewport/SubViewportContainer/SubViewport" instance=ExtResource("1_or0s6")]
+
+[node name="OptionButton" type="OptionButton" parent="HBoxContainer/Viewport"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -7.0
+offset_right = 7.0
+offset_bottom = 20.0
+grow_horizontal = 2
+
+[node name="SaveBtn" type="Button" parent="HBoxContainer/Viewport"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Save Mantle"
+
+[node name="Inspector" type="Panel" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/Inspector"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -55,37 +99,30 @@ offset_left = 15.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="OptionButton" type="OptionButton" parent="Inspector/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Inspector/VBoxContainer"]
+[node name="Label" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
 layout_mode = 2
 text = "Notes:"
 
-[node name="TextEdit" type="TextEdit" parent="Inspector/VBoxContainer"]
+[node name="TextEdit" type="TextEdit" parent="HBoxContainer/Inspector/VBoxContainer"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_vertical = 0
 placeholder_text = "notes here"
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
-clip_contents = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 210.0
-offset_right = -188.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
-metadata/_edit_use_anchors_ = true
+[node name="RigNoteLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
+layout_mode = 2
+text = "Rig Note:"
 
-[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
-own_world_3d = true
-world_3d = SubResource("World3D_5sad0")
-handle_input_locally = false
-size = Vector2i(754, 648)
-render_target_update_mode = 4
+[node name="RigNoteEdit" type="TextEdit" parent="HBoxContainer/Inspector/VBoxContainer"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 0
+placeholder_text = "rig note here"
 
-[node name="Node3D" parent="SubViewportContainer/SubViewport" instance=ExtResource("1_or0s6")]
+[node name="BaseColorLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
+layout_mode = 2
+text = "Base Color:"
+
+[node name="BaseColorPicker" type="ColorPickerButton" parent="HBoxContainer/Inspector/VBoxContainer"]
+custom_minimum_size = Vector2(0, 75)
+layout_mode = 2
