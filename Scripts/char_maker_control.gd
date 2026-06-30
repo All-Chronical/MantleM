@@ -440,7 +440,7 @@ func _on_add_flat_pressed() -> void:
 	scales.append(Vector3.ONE)
 	_current_mantle.flatScales = scales
 	var new_flat_idx: int = _current_mantle.flatBoneIndices.size() - 1
-	_spawn_flat_mesh(new_flat_idx, bone_idx, Vector3.UP, _current_mantle.baseColor, Vector3.ONE)
+	_spawn_flat_mesh(new_flat_idx, bone_idx, Vector3.ZERO, _current_mantle.baseColor, Vector3.ONE)
 	print("[Flat] added idx=", new_flat_idx, " bone_order_pos=", bone_order_pos)
 	_rebuild_hierarchy()
 	_select_flat_in_tree(new_flat_idx)
@@ -551,9 +551,7 @@ func _on_flat_slider_changed(_value: float) -> void:
 	positions[_selected_flat_idx] = pos
 	_current_mantle.flatPositions = positions
 	if _flat_meshes.has(_selected_flat_idx):
-		var mesh_inst = _flat_meshes[_selected_flat_idx]
-		var bone_origin = mesh_inst.get_parent().global_position
-		mesh_inst.global_position = bone_origin + pos
+		_flat_meshes[_selected_flat_idx].position = pos
 	print("[Flat] pos updated idx=", _selected_flat_idx, " pos=", pos)
 
 func _on_flat_color_changed(color: Color) -> void:
@@ -587,9 +585,17 @@ func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3, color: Color, 
 	mat.albedo_color = color
 	mesh_inst.material_override = mat
 	attachment.add_child(mesh_inst)
-	mesh_inst.global_position = attachment.global_position + pos
 	mesh_inst.scale = scl
 	_cube_meshes[cube_idx] = mesh_inst
+	_apply_cube_position.call_deferred(cube_idx, pos)
+
+func _apply_cube_position(cube_idx: int, pos: Vector3) -> void:
+	if not _cube_meshes.has(cube_idx):
+		return
+	var mesh_inst = _cube_meshes[cube_idx]
+	if not is_instance_valid(mesh_inst):
+		return
+	mesh_inst.global_position = mesh_inst.get_parent().global_position + pos
 
 func _spawn_all_cube_meshes() -> void:
 	for mesh_inst in _cube_meshes.values():
@@ -613,10 +619,11 @@ func _spawn_flat_mesh(flat_idx: int, bone_idx: int, pos: Vector3, color: Color, 
 	mesh_inst.mesh = PlaneMesh.new()
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mesh_inst.material_override = mat
 	attachment.add_child(mesh_inst)
-	mesh_inst.global_rotate(Vector3.RIGHT, deg_to_rad(90))
-	mesh_inst.global_position = attachment.global_position + pos
+	mesh_inst.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	mesh_inst.position = pos
 	mesh_inst.scale = scl
 	_flat_meshes[flat_idx] = mesh_inst
 
@@ -849,6 +856,3 @@ func _build_overwrite_dialog() -> void:
 	_overwrite_dialog.min_size = Vector2i(300, 100)
 	add_child(_overwrite_dialog)
 	_overwrite_dialog.confirmed.connect(_on_overwrite_confirmed)
-
-func _process(_delta):
-	pass
