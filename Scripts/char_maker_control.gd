@@ -341,7 +341,9 @@ func _on_cube_slider_changed(_value: float) -> void:
 	positions[_selected_cube_idx] = pos
 	_current_mantle.cubePositions = positions
 	if _cube_meshes.has(_selected_cube_idx):
-		_cube_meshes[_selected_cube_idx].position = pos
+		var mesh_inst = _cube_meshes[_selected_cube_idx]
+		var bone_origin = mesh_inst.get_parent().global_position
+		mesh_inst.global_position = bone_origin + pos
 	print("[Cube] pos updated idx=", _selected_cube_idx, " pos=", pos)
 
 func _on_cube_color_changed(color: Color) -> void:
@@ -360,11 +362,11 @@ func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3, color: Color) 
 	skeleton.add_child(attachment)
 	var mesh_inst := MeshInstance3D.new()
 	mesh_inst.mesh = BoxMesh.new()
-	mesh_inst.position = pos
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
 	mesh_inst.material_override = mat
 	attachment.add_child(mesh_inst)
+	mesh_inst.global_position = attachment.global_position + pos
 	_cube_meshes[cube_idx] = mesh_inst
 
 func _spawn_all_cube_meshes() -> void:
