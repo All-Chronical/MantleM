@@ -4,9 +4,9 @@ extends Control
 @export var skeleton: Skeleton3D
 @export var mesh: MeshInstance3D
 
-@onready var _mantle_picker: OptionButton = $"Inspector/VBoxContainer/OptionButton"
-@onready var _note_label: Label = $"Inspector/VBoxContainer/Label"
-@onready var _note_edit: TextEdit = $"Inspector/VBoxContainer/TextEdit"
+@onready var _mantle_picker: OptionButton = $HBoxContainer/Viewport/OptionButton
+@onready var _note_label: Label = $HBoxContainer/Inspector/VBoxContainer/Label
+@onready var _note_edit: TextEdit = $HBoxContainer/Inspector/VBoxContainer/TextEdit
 
 var _bone_order_cache: Dictionary = {}
 
@@ -22,6 +22,8 @@ func _ready():
 
 	hierarchyList.clear()
 	var root := hierarchyList.create_item()
+	root.set_text(0, "Root")
+	root.set_metadata(0, -1)
 	for bone_idx in skeleton.get_parentless_bones():
 		_add_bone_to_tree(bone_idx, root)
 	hierarchyList.item_selected.connect(_on_bone_selected)
@@ -79,6 +81,9 @@ func _on_bone_selected() -> void:
 		print("[Bone] early exit — item=", item, " mantle=", _current_mantle)
 		return
 	var bone_idx: int = item.get_metadata(0)
+	if bone_idx < 0:
+		_on_bone_deselected()
+		return
 	var bone_name: String = skeleton.get_bone_name(bone_idx)
 	var order_pos := _current_bone_order.find(bone_idx)
 	if order_pos < 0:
