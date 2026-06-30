@@ -5,3 +5,4 @@ class_name Mantle
 @export var baseColor: Color = Color.BLACK
 @export var rigNote: String = ""
 @export var notes: PackedStringArray
+@export var shapeKeyValues: PackedFloat32Array
