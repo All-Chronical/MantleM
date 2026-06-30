@@ -25,6 +25,8 @@ const BASE_NODE_PATHS: Array[String] = [
 @onready var _cube_x_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/XContainer/XSlider
 @onready var _cube_y_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/YContainer/YSlider
 @onready var _cube_z_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/ZContainer/ZSlider
+@onready var _cube_color_label: Label = $HBoxContainer/Inspector/VBoxContainer/CubeColorLabel
+@onready var _cube_color_picker: ColorPickerButton = $HBoxContainer/Inspector/VBoxContainer/CubeColorPicker
 @onready var _add_cube_btn: Button = $HBoxContainer/Hierarchy/VBoxContainer/HBoxContainer/AddCBtn
 @onready var _del_part_btn: Button = $HBoxContainer/Hierarchy/VBoxContainer/HBoxContainer/DelPBtn
 
@@ -67,6 +69,7 @@ func _ready():
 	_cube_x_slider.value_changed.connect(_on_cube_slider_changed)
 	_cube_y_slider.value_changed.connect(_on_cube_slider_changed)
 	_cube_z_slider.value_changed.connect(_on_cube_slider_changed)
+	_cube_color_picker.color_changed.connect(_on_cube_color_changed)
 	_add_cube_btn.pressed.connect(_on_add_cube_pressed)
 	_del_part_btn.pressed.connect(_on_del_part_pressed)
 	_del_part_btn.visible = false
@@ -155,6 +158,14 @@ func _on_mantle_selected(id: int) -> void:
 	if _shape_keys.size() < blend_shape_count:
 		_shape_keys.resize(blend_shape_count)
 		_current_mantle.shapeKeyValues = _shape_keys
+	var _cube_colors := _current_mantle.cubeColors
+	var _cube_count := _current_mantle.cubeBoneIndices.size()
+	if _cube_colors.size() < _cube_count:
+		var _old_color_size := _cube_colors.size()
+		_cube_colors.resize(_cube_count)
+		for i in range(_old_color_size, _cube_count):
+			_cube_colors[i] = Color.WHITE
+		_current_mantle.cubeColors = _cube_colors
 	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " notes_size=", _current_mantle.notes.size(), " shape_keys=", _current_mantle.shapeKeyValues.size())
 	_save_btn.disabled = false
 	_apply_base_color()
@@ -213,10 +224,13 @@ func _on_cube_selected(cube_idx: int) -> void:
 	_cube_x_slider.value = pos.x
 	_cube_y_slider.value = pos.y
 	_cube_z_slider.value = pos.z
+	_cube_color_picker.color = _current_mantle.cubeColors[cube_idx]
 	_updating_attrs = false
 	_hide_all_attrs()
 	_cube_label.show()
 	_cube_slider_container.show()
+	_cube_color_label.show()
+	_cube_color_picker.show()
 	_add_cube_btn.visible = false
 	_del_part_btn.visible = true
 
@@ -283,8 +297,11 @@ func _on_add_cube_pressed() -> void:
 	var positions := _current_mantle.cubePositions
 	positions.append(Vector3.ZERO)
 	_current_mantle.cubePositions = positions
+	var colors := _current_mantle.cubeColors
+	colors.append(_current_mantle.baseColor)
+	_current_mantle.cubeColors = colors
 	var new_cube_idx: int = _current_mantle.cubeBoneIndices.size() - 1
-	_spawn_cube_mesh(new_cube_idx, bone_idx, Vector3.ZERO)
+	_spawn_cube_mesh(new_cube_idx, bone_idx, Vector3.ZERO, _current_mantle.baseColor)
 	print("[Cube] added idx=", new_cube_idx, " bone_order_pos=", bone_order_pos)
 	_rebuild_hierarchy()
 	_select_cube_in_tree(new_cube_idx)
@@ -308,6 +325,9 @@ func _on_del_part_pressed() -> void:
 	var positions := _current_mantle.cubePositions
 	positions.remove_at(del_idx)
 	_current_mantle.cubePositions = positions
+	var colors := _current_mantle.cubeColors
+	colors.remove_at(del_idx)
+	_current_mantle.cubeColors = colors
 	print("[Cube] deleted idx=", del_idx)
 	_selected_cube_idx = -1
 	_rebuild_hierarchy()
@@ -324,13 +344,26 @@ func _on_cube_slider_changed(_value: float) -> void:
 		_cube_meshes[_selected_cube_idx].position = pos
 	print("[Cube] pos updated idx=", _selected_cube_idx, " pos=", pos)
 
-func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3) -> void:
+func _on_cube_color_changed(color: Color) -> void:
+	if _updating_attrs or _current_mantle == null or _selected_cube_idx < 0:
+		return
+	var colors := _current_mantle.cubeColors
+	colors[_selected_cube_idx] = color
+	_current_mantle.cubeColors = colors
+	if _cube_meshes.has(_selected_cube_idx):
+		(_cube_meshes[_selected_cube_idx].material_override as StandardMaterial3D).albedo_color = color
+	print("[Cube] color updated idx=", _selected_cube_idx, " color=", color)
+
+func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3, color: Color) -> void:
 	var attachment := BoneAttachment3D.new()
 	attachment.bone_idx = bone_idx
 	skeleton.add_child(attachment)
 	var mesh_inst := MeshInstance3D.new()
 	mesh_inst.mesh = BoxMesh.new()
 	mesh_inst.position = pos
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mesh_inst.material_override = mat
 	attachment.add_child(mesh_inst)
 	_cube_meshes[cube_idx] = mesh_inst
 
@@ -344,7 +377,8 @@ func _spawn_all_cube_meshes() -> void:
 		var order_pos: int = _current_mantle.cubeBoneIndices[i]
 		var bone_idx: int = _current_bone_order[order_pos]
 		var pos: Vector3 = _current_mantle.cubePositions[i]
-		_spawn_cube_mesh(i, bone_idx, pos)
+		var color: Color = _current_mantle.cubeColors[i]
+		_spawn_cube_mesh(i, bone_idx, pos, color)
 
 func _select_cube_in_tree(cube_idx: int) -> void:
 	var root := hierarchyList.get_root()
@@ -408,6 +442,8 @@ func _hide_all_attrs() -> void:
 	_shape_key_container.hide()
 	_cube_label.hide()
 	_cube_slider_container.hide()
+	_cube_color_label.hide()
+	_cube_color_picker.hide()
 
 func _apply_base_color() -> void:
 	if _current_mantle == null:
