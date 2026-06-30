@@ -1,8 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://ck1uc016b80fj"]
+[gd_scene load_steps=4 format=3 uid="uid://ck1uc016b80fj"]
 
 [ext_resource type="PackedScene" uid="uid://d2qa2cavgqenn" path="res://Assets/Rigs/Humanoid_mk6.glb" id="1_741eq"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0dt0o"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_hqyi5"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -21,3 +23,7 @@ light_energy = 0.604
 [node name="Humanoid_mk6" parent="." instance=ExtResource("1_741eq")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, -3.70471)
 visible = false
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.202787, -0.979223, 0, 0.979223, 0.202787, 0, 1.14194, 0)
+mesh = SubResource("PlaneMesh_hqyi5")

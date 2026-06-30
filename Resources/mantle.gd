@@ -9,3 +9,6 @@ class_name Mantle
 @export var cubeBoneIndices: PackedInt32Array
 @export var cubePositions: PackedVector3Array
 @export var cubeColors: PackedColorArray
+@export var flatBoneIndices: PackedInt32Array
+@export var flatPositions: PackedVector3Array
+@export var flatColors: PackedColorArray
