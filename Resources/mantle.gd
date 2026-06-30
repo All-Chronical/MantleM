@@ -6,3 +6,5 @@ class_name Mantle
 @export var rigNote: String = ""
 @export var notes: PackedStringArray
 @export var shapeKeyValues: PackedFloat32Array
+@export var cubeBoneIndices: PackedInt32Array
+@export var cubePositions: PackedVector3Array
