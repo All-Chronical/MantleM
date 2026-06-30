@@ -1,5 +1,7 @@
 extends Control
 
+const BLANK_MANTLE_PATH := "res://Mantles/blank.tres"
+
 @export var hierarchyList: Tree
 @export var skeleton: Skeleton3D
 @export var mesh: MeshInstance3D
@@ -11,14 +13,22 @@ extends Control
 @onready var _rig_note_edit: TextEdit = $HBoxContainer/Inspector/VBoxContainer/RigNoteEdit
 @onready var _rig_color_label: Label = $HBoxContainer/Inspector/VBoxContainer/BaseColorLabel
 @onready var _rig_color_picker: ColorPickerButton = $HBoxContainer/Inspector/VBoxContainer/BaseColorPicker
+@onready var _save_btn: Button = $HBoxContainer/Viewport/SaveBtn
 
 var _bone_order_cache: Dictionary = {}
 
+var _original_mantle: Mantle = null
 var _current_mantle: Mantle = null
+var _current_mantle_path: String = ""
 var _current_bone_order: PackedInt32Array = []
 var _current_order_pos: int = -1
 var _mantle_paths: Array[String] = []
 var _updating_attrs: bool = false
+
+var _save_as_dialog: ConfirmationDialog
+var _save_as_name_edit: LineEdit
+var _overwrite_dialog: ConfirmationDialog
+var _pending_save_path: String = ""
 
 func _ready():
 	skeleton = find_children("*", "Skeleton3D", true, false)[0]
@@ -32,15 +42,20 @@ func _ready():
 		_add_bone_to_tree(bone_idx, root)
 	hierarchyList.item_selected.connect(_on_bone_selected)
 
-	_refresh_mantle_options()
-	_mantle_picker.item_selected.connect(_on_mantle_selected)
-	if _mantle_paths.size() > 0:
-		_on_mantle_selected(0)
+	_save_btn.disabled = true
+	_save_btn.pressed.connect(_on_save_pressed)
+	_build_save_as_dialog()
+	_build_overwrite_dialog()
 
 	_note_edit.text_changed.connect(_on_note_changed)
 	_rig_note_edit.text_changed.connect(_on_rig_note_changed)
 	_rig_color_picker.color_changed.connect(_on_color_changed)
 	hierarchyList.nothing_selected.connect(_on_bone_deselected)
+
+	_refresh_mantle_options()
+	_mantle_picker.item_selected.connect(_on_mantle_selected)
+	if _mantle_paths.size() > 0:
+		_on_mantle_selected(0)
 
 func _add_bone_to_tree(bone_idx: int, parent_item: TreeItem) -> void:
 	var item := hierarchyList.create_item(parent_item)
@@ -71,13 +86,16 @@ func _on_mantle_selected(id: int) -> void:
 	var mantle := load(_mantle_paths[id]) as Mantle
 	if mantle == null:
 		return
-	_current_mantle = mantle
+	_current_mantle_path = _mantle_paths[id]
+	_original_mantle = mantle
+	_current_mantle = _original_mantle.duplicate()
 	_current_bone_order = _get_bone_order(mantle.rigType)
 	var _notes := _current_mantle.notes
 	if _notes.size() < _current_bone_order.size():
 		_notes.resize(_current_bone_order.size())
 		_current_mantle.notes = _notes
 	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " notes_size=", _current_mantle.notes.size())
+	_save_btn.disabled = false
 	_apply_base_color()
 	_on_bone_deselected()
 
@@ -181,6 +199,80 @@ func _build_bone_order(bone_idx: int, order: PackedInt32Array) -> void:
 	order.append(bone_idx)
 	for child_idx in skeleton.get_bone_children(bone_idx):
 		_build_bone_order(child_idx, order)
+
+func _on_save_pressed() -> void:
+	if _current_mantle == null:
+		return
+	if _current_mantle_path == BLANK_MANTLE_PATH:
+		_save_as_name_edit.text = ""
+		_save_as_dialog.get_ok_button().disabled = true
+		_save_as_dialog.popup_centered()
+	else:
+		_do_quick_save()
+
+func _on_save_as_name_changed(text: String) -> void:
+	_save_as_dialog.get_ok_button().disabled = text.strip_edges().is_empty()
+
+func _on_save_as_confirmed() -> void:
+	var name := _save_as_name_edit.text.strip_edges()
+	if name.is_empty():
+		return
+	var path := "res://Mantles/" + name + ".tres"
+	if ResourceLoader.exists(path):
+		_pending_save_path = path
+		_overwrite_dialog.dialog_text = "'" + name + "' already exists. Overwrite?"
+		_overwrite_dialog.popup_centered()
+	else:
+		_do_save(path, name)
+
+func _on_overwrite_confirmed() -> void:
+	var name := _save_as_name_edit.text.strip_edges()
+	_do_save(_pending_save_path, name)
+
+func _do_quick_save() -> void:
+	var err := ResourceSaver.save(_current_mantle, _current_mantle_path)
+	if err != OK:
+		push_error("[Mantle] Quick save failed: " + str(err))
+		return
+	_original_mantle = _current_mantle.duplicate()
+	print("[Mantle] Quick saved to: ", _current_mantle_path)
+
+func _do_save(path: String, mantle_name: String) -> void:
+	var err := ResourceSaver.save(_current_mantle, path)
+	if err != OK:
+		push_error("[Mantle] Save failed: " + str(err))
+		return
+	_current_mantle_path = path
+	_original_mantle = _current_mantle.duplicate()
+	print("[Mantle] Saved to: ", path)
+	_refresh_mantle_options()
+	_select_mantle_by_name(mantle_name)
+
+func _select_mantle_by_name(mantle_name: String) -> void:
+	for i in range(_mantle_picker.item_count):
+		if _mantle_picker.get_item_text(i) == mantle_name:
+			_mantle_picker.select(i)
+			break
+
+func _build_save_as_dialog() -> void:
+	_save_as_dialog = ConfirmationDialog.new()
+	_save_as_dialog.title = "saving..."
+	_save_as_dialog.min_size = Vector2i(300, 100)
+	var lbl := Label.new()
+	lbl.text = "name:"
+	_save_as_name_edit = LineEdit.new()
+	_save_as_dialog.add_child(lbl)
+	_save_as_dialog.add_child(_save_as_name_edit)
+	add_child(_save_as_dialog)
+	_save_as_dialog.confirmed.connect(_on_save_as_confirmed)
+	_save_as_name_edit.text_changed.connect(_on_save_as_name_changed)
+
+func _build_overwrite_dialog() -> void:
+	_overwrite_dialog = ConfirmationDialog.new()
+	_overwrite_dialog.title = "overwrite?"
+	_overwrite_dialog.min_size = Vector2i(300, 100)
+	add_child(_overwrite_dialog)
+	_overwrite_dialog.confirmed.connect(_on_overwrite_confirmed)
 
 func _process(_delta):
 	pass
