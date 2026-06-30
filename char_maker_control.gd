@@ -7,6 +7,10 @@ extends Control
 @onready var _mantle_picker: OptionButton = $HBoxContainer/Viewport/OptionButton
 @onready var _note_label: Label = $HBoxContainer/Inspector/VBoxContainer/Label
 @onready var _note_edit: TextEdit = $HBoxContainer/Inspector/VBoxContainer/TextEdit
+@onready var _rig_note_label: Label = $HBoxContainer/Inspector/VBoxContainer/RigNoteLabel
+@onready var _rig_note_edit: TextEdit = $HBoxContainer/Inspector/VBoxContainer/RigNoteEdit
+@onready var _rig_color_label: Label = $HBoxContainer/Inspector/VBoxContainer/BaseColorLabel
+@onready var _rig_color_picker: ColorPickerButton = $HBoxContainer/Inspector/VBoxContainer/BaseColorPicker
 
 var _bone_order_cache: Dictionary = {}
 
@@ -22,7 +26,7 @@ func _ready():
 
 	hierarchyList.clear()
 	var root := hierarchyList.create_item()
-	root.set_text(0, "Root")
+	root.set_text(0, "Rig")
 	root.set_metadata(0, -1)
 	for bone_idx in skeleton.get_parentless_bones():
 		_add_bone_to_tree(bone_idx, root)
@@ -34,6 +38,8 @@ func _ready():
 		_on_mantle_selected(0)
 
 	_note_edit.text_changed.connect(_on_note_changed)
+	_rig_note_edit.text_changed.connect(_on_rig_note_changed)
+	_rig_color_picker.color_changed.connect(_on_color_changed)
 	hierarchyList.nothing_selected.connect(_on_bone_deselected)
 
 func _add_bone_to_tree(bone_idx: int, parent_item: TreeItem) -> void:
@@ -72,6 +78,7 @@ func _on_mantle_selected(id: int) -> void:
 		_notes.resize(_current_bone_order.size())
 		_current_mantle.notes = _notes
 	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " notes_size=", _current_mantle.notes.size())
+	_apply_base_color()
 	_on_bone_deselected()
 
 func _on_bone_selected() -> void:
@@ -82,7 +89,7 @@ func _on_bone_selected() -> void:
 		return
 	var bone_idx: int = item.get_metadata(0)
 	if bone_idx < 0:
-		_on_bone_deselected()
+		_on_rig_selected()
 		return
 	var bone_name: String = skeleton.get_bone_name(bone_idx)
 	var order_pos := _current_bone_order.find(bone_idx)
@@ -96,6 +103,7 @@ func _on_bone_selected() -> void:
 	_note_edit.text = stored_note
 	_updating_attrs = false
 	print("[Bone] TextEdit.text after set='" , _note_edit.text, "'")
+	_hide_all_attrs()
 	_note_label.show()
 	_note_edit.show()
 
@@ -112,8 +120,53 @@ func _on_bone_deselected() -> void:
 	_updating_attrs = true
 	_note_edit.text = ""
 	_updating_attrs = false
+	_hide_all_attrs()
+
+func _on_rig_selected() -> void:
+	_hide_all_attrs()
+	_updating_attrs = true
+	_rig_note_edit.text = _current_mantle.rigNote
+	_rig_color_picker.color = _current_mantle.baseColor
+	_updating_attrs = false
+	_rig_note_label.show()
+	_rig_note_edit.show()
+	_rig_color_label.show()
+	_rig_color_picker.show()
+
+func _hide_all_attrs() -> void:
 	_note_label.hide()
 	_note_edit.hide()
+	_rig_note_label.hide()
+	_rig_note_edit.hide()
+	_rig_color_label.hide()
+	_rig_color_picker.hide()
+
+func _apply_base_color() -> void:
+	if _current_mantle == null:
+		return
+	var surface_count := mesh.mesh.get_surface_count()
+	if surface_count != 1:
+		push_error("[Mantle] Expected 1 surface on skin mesh, found: " + str(surface_count))
+		return
+	var mat := mesh.get_active_material(0)
+	if mat == null:
+		push_error("[Mantle] Skin mesh surface 0 has no material")
+		return
+	if not mat is StandardMaterial3D:
+		push_error("[Mantle] Skin mesh surface 0 is not StandardMaterial3D, got: " + mat.get_class())
+		return
+	(mat as StandardMaterial3D).albedo_color = _current_mantle.baseColor
+
+func _on_color_changed(color: Color) -> void:
+	if _updating_attrs or _current_mantle == null:
+		return
+	_current_mantle.baseColor = color
+	_apply_base_color()
+
+func _on_rig_note_changed() -> void:
+	if _updating_attrs or _current_mantle == null:
+		return
+	_current_mantle.rigNote = _rig_note_edit.text
 
 func _get_bone_order(rig_type: int) -> PackedInt32Array:
 	if _bone_order_cache.has(rig_type):
