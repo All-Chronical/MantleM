@@ -234,3 +234,64 @@ text = "Cube Color:"
 visible = false
 custom_minimum_size = Vector2(0, 75)
 layout_mode = 2
+
+[node name="FlatLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Flat Position:"
+
+[node name="FlatSliderContainer" type="VBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="XContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer"]
+layout_mode = 2
+
+[node name="XLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer/XContainer"]
+layout_mode = 2
+text = "X"
+
+[node name="XSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer/XContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -10.0
+max_value = 10.0
+step = 0.1
+
+[node name="YContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer"]
+layout_mode = 2
+
+[node name="YLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer/YContainer"]
+layout_mode = 2
+text = "Y"
+
+[node name="YSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer/YContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -10.0
+max_value = 10.0
+step = 0.1
+
+[node name="ZContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer"]
+layout_mode = 2
+
+[node name="ZLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer/ZContainer"]
+layout_mode = 2
+text = "Z"
+
+[node name="ZSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/FlatSliderContainer/ZContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -10.0
+max_value = 10.0
+step = 0.1
+
+[node name="FlatColorLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Flat Color:"
+
+[node name="FlatColorPicker" type="ColorPickerButton" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 75)
+layout_mode = 2
