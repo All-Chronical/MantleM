@@ -1,10 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://ck1uc016b80fj"]
+[gd_scene load_steps=3 format=3 uid="uid://ck1uc016b80fj"]
 
 [ext_resource type="PackedScene" uid="uid://d2qa2cavgqenn" path="res://Assets/Rigs/Humanoid_mk6.glb" id="1_741eq"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0dt0o"]
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_hqyi5"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -13,7 +11,7 @@ transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
 mesh = SubResource("PlaneMesh_0dt0o")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(-0.999816, -0.00535597, 0.0184354, 0, 0.960294, 0.278991, -0.0191976, 0.27894, -0.960117, 0.655, 10.227, -18.777)
+transform = Transform3D(-0.999816, -0.00535599, 0.0184354, 0.00245295, 0.916781, 0.399383, -0.0190403, 0.399354, -0.916599, 0.655, 12.4373, -18.777)
 fov = 45.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
@@ -23,7 +21,3 @@ light_energy = 0.604
 [node name="Humanoid_mk6" parent="." instance=ExtResource("1_741eq")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, -3.70471)
 visible = false
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.202787, -0.979223, 0, 0.979223, 0.202787, 0, 1.14194, 0)
-mesh = SubResource("PlaneMesh_hqyi5")
