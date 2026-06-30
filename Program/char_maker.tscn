@@ -19,5 +19,5 @@ transform = Transform3D(1, 0, 0, 0, -0.930418, 0.366501, 0, -0.366501, -0.930418
 light_energy = 0.604
 
 [node name="Humanoid_mk6" parent="." instance=ExtResource("1_741eq")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.70471)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, -3.70471)
 visible = false

@@ -20,6 +20,13 @@ const BASE_NODE_PATHS: Array[String] = [
 @onready var _shape_keys_label: Label = $HBoxContainer/Inspector/VBoxContainer/ShapeKeysLabel
 @onready var _shape_key_container: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/ShapeKeyContainer
 @onready var _shape_key_template: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/ShapeKeyContainer/ShapeKeyTemplate
+@onready var _cube_label: Label = $HBoxContainer/Inspector/VBoxContainer/CubeLabel
+@onready var _cube_slider_container: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer
+@onready var _cube_x_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/XContainer/XSlider
+@onready var _cube_y_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/YContainer/YSlider
+@onready var _cube_z_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/ZContainer/ZSlider
+@onready var _add_cube_btn: Button = $HBoxContainer/Hierarchy/VBoxContainer/HBoxContainer/AddCBtn
+@onready var _del_part_btn: Button = $HBoxContainer/Hierarchy/VBoxContainer/HBoxContainer/DelPBtn
 
 var _base_nodes: Array[Node3D] = []
 var _bone_order_cache: Dictionary = {}
@@ -39,6 +46,9 @@ var _save_as_name_edit: LineEdit
 var _overwrite_dialog: ConfirmationDialog
 var _pending_save_path: String = ""
 
+var _cube_meshes: Dictionary = {}
+var _selected_cube_idx: int = -1
+
 func _ready():
 	for path in BASE_NODE_PATHS:
 		_base_nodes.append(get_node(path) as Node3D)
@@ -54,6 +64,12 @@ func _ready():
 	_note_edit.text_changed.connect(_on_note_changed)
 	_rig_note_edit.text_changed.connect(_on_rig_note_changed)
 	_rig_color_picker.color_changed.connect(_on_color_changed)
+	_cube_x_slider.value_changed.connect(_on_cube_slider_changed)
+	_cube_y_slider.value_changed.connect(_on_cube_slider_changed)
+	_cube_z_slider.value_changed.connect(_on_cube_slider_changed)
+	_add_cube_btn.pressed.connect(_on_add_cube_pressed)
+	_del_part_btn.pressed.connect(_on_del_part_pressed)
+	_del_part_btn.visible = false
 
 	_refresh_mantle_options()
 	_mantle_picker.item_selected.connect(_on_mantle_selected)
@@ -72,6 +88,13 @@ func _add_bone_to_tree(bone_idx: int, parent_item: TreeItem) -> void:
 	var item := hierarchyList.create_item(parent_item)
 	item.set_text(0, skeleton.get_bone_name(bone_idx))
 	item.set_metadata(0, bone_idx)
+	var order_pos := _current_bone_order.find(bone_idx)
+	if order_pos >= 0 and _current_mantle != null:
+		for i in range(_current_mantle.cubeBoneIndices.size()):
+			if _current_mantle.cubeBoneIndices[i] == order_pos:
+				var cube_item := hierarchyList.create_item(item)
+				cube_item.set_text(0, "Cube Part")
+				cube_item.set_metadata(0, {"cube": true, "idx": i})
 	for child_idx in skeleton.get_bone_children(bone_idx):
 		_add_bone_to_tree(child_idx, item)
 
@@ -136,6 +159,8 @@ func _on_mantle_selected(id: int) -> void:
 	_save_btn.disabled = false
 	_apply_base_color()
 	_apply_shape_keys()
+	_spawn_all_cube_meshes()
+	_rebuild_hierarchy()
 	_on_bone_deselected()
 
 func _on_bone_selected() -> void:
@@ -144,7 +169,11 @@ func _on_bone_selected() -> void:
 	if item == null or _current_mantle == null:
 		print("[Bone] early exit — item=", item, " mantle=", _current_mantle)
 		return
-	var bone_idx: int = item.get_metadata(0)
+	var metadata = item.get_metadata(0)
+	if typeof(metadata) == TYPE_DICTIONARY:
+		_on_cube_selected(metadata["idx"])
+		return
+	var bone_idx: int = metadata
 	if bone_idx < 0:
 		_on_rig_selected()
 		return
@@ -160,9 +189,12 @@ func _on_bone_selected() -> void:
 	_note_edit.text = stored_note
 	_updating_attrs = false
 	print("[Bone] TextEdit.text after set='" , _note_edit.text, "'")
+	_selected_cube_idx = -1
 	_hide_all_attrs()
 	_note_label.show()
 	_note_edit.show()
+	_add_cube_btn.visible = true
+	_del_part_btn.visible = false
 
 func _on_note_changed() -> void:
 	if _updating_attrs or _current_mantle == null or _current_order_pos < 0:
@@ -172,14 +204,34 @@ func _on_note_changed() -> void:
 	_current_mantle.notes = _notes
 	print("[Note] pos=", _current_order_pos, " text=", _note_edit.text)
 
+func _on_cube_selected(cube_idx: int) -> void:
+	_selected_cube_idx = cube_idx
+	_current_order_pos = -1
+	var pos: Vector3 = _current_mantle.cubePositions[cube_idx]
+	print("[Cube] selected idx=", cube_idx, " pos=", pos)
+	_updating_attrs = true
+	_cube_x_slider.value = pos.x
+	_cube_y_slider.value = pos.y
+	_cube_z_slider.value = pos.z
+	_updating_attrs = false
+	_hide_all_attrs()
+	_cube_label.show()
+	_cube_slider_container.show()
+	_add_cube_btn.visible = false
+	_del_part_btn.visible = true
+
 func _on_bone_deselected() -> void:
 	_current_order_pos = -1
+	_selected_cube_idx = -1
 	_updating_attrs = true
 	_note_edit.text = ""
 	_updating_attrs = false
 	_hide_all_attrs()
+	_add_cube_btn.visible = true
+	_del_part_btn.visible = false
 
 func _on_rig_selected() -> void:
+	_selected_cube_idx = -1
 	_hide_all_attrs()
 	_updating_attrs = true
 	_rig_note_edit.text = _current_mantle.rigNote
@@ -192,6 +244,8 @@ func _on_rig_selected() -> void:
 	_rig_color_picker.show()
 	_shape_keys_label.show()
 	_shape_key_container.show()
+	_add_cube_btn.visible = false
+	_del_part_btn.visible = false
 
 func _populate_shape_key_sliders() -> void:
 	for child in _shape_key_container.get_children():
@@ -218,6 +272,131 @@ func _on_shape_key_changed(value: float, idx: int) -> void:
 	_current_mantle.shapeKeyValues = values
 	mesh.set_blend_shape_value(idx, value)
 
+func _on_add_cube_pressed() -> void:
+	if _current_mantle == null or _current_order_pos < 0:
+		return
+	var bone_order_pos := _current_order_pos
+	var bone_idx: int = _current_bone_order[bone_order_pos]
+	var indices := _current_mantle.cubeBoneIndices
+	indices.append(bone_order_pos)
+	_current_mantle.cubeBoneIndices = indices
+	var positions := _current_mantle.cubePositions
+	positions.append(Vector3.ZERO)
+	_current_mantle.cubePositions = positions
+	var new_cube_idx: int = _current_mantle.cubeBoneIndices.size() - 1
+	_spawn_cube_mesh(new_cube_idx, bone_idx, Vector3.ZERO)
+	print("[Cube] added idx=", new_cube_idx, " bone_order_pos=", bone_order_pos)
+	_rebuild_hierarchy()
+	_select_cube_in_tree(new_cube_idx)
+
+func _on_del_part_pressed() -> void:
+	if _current_mantle == null or _selected_cube_idx < 0:
+		return
+	var del_idx := _selected_cube_idx
+	var bone_order_pos: int = _current_mantle.cubeBoneIndices[del_idx]
+	if _cube_meshes.has(del_idx):
+		_cube_meshes[del_idx].get_parent().queue_free()
+		_cube_meshes.erase(del_idx)
+	var new_meshes: Dictionary = {}
+	for old_idx in _cube_meshes.keys():
+		var new_idx: int = old_idx if old_idx < del_idx else old_idx - 1
+		new_meshes[new_idx] = _cube_meshes[old_idx]
+	_cube_meshes = new_meshes
+	var indices := _current_mantle.cubeBoneIndices
+	indices.remove_at(del_idx)
+	_current_mantle.cubeBoneIndices = indices
+	var positions := _current_mantle.cubePositions
+	positions.remove_at(del_idx)
+	_current_mantle.cubePositions = positions
+	print("[Cube] deleted idx=", del_idx)
+	_selected_cube_idx = -1
+	_rebuild_hierarchy()
+	_select_bone_by_order_pos(bone_order_pos)
+
+func _on_cube_slider_changed(_value: float) -> void:
+	if _updating_attrs or _current_mantle == null or _selected_cube_idx < 0:
+		return
+	var pos := Vector3(_cube_x_slider.value, _cube_y_slider.value, _cube_z_slider.value)
+	var positions := _current_mantle.cubePositions
+	positions[_selected_cube_idx] = pos
+	_current_mantle.cubePositions = positions
+	if _cube_meshes.has(_selected_cube_idx):
+		_cube_meshes[_selected_cube_idx].position = pos
+	print("[Cube] pos updated idx=", _selected_cube_idx, " pos=", pos)
+
+func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3) -> void:
+	var attachment := BoneAttachment3D.new()
+	attachment.bone_idx = bone_idx
+	skeleton.add_child(attachment)
+	var mesh_inst := MeshInstance3D.new()
+	mesh_inst.mesh = BoxMesh.new()
+	mesh_inst.position = pos
+	attachment.add_child(mesh_inst)
+	_cube_meshes[cube_idx] = mesh_inst
+
+func _spawn_all_cube_meshes() -> void:
+	for mesh_inst in _cube_meshes.values():
+		mesh_inst.get_parent().queue_free()
+	_cube_meshes.clear()
+	if _current_mantle == null:
+		return
+	for i in range(_current_mantle.cubeBoneIndices.size()):
+		var order_pos: int = _current_mantle.cubeBoneIndices[i]
+		var bone_idx: int = _current_bone_order[order_pos]
+		var pos: Vector3 = _current_mantle.cubePositions[i]
+		_spawn_cube_mesh(i, bone_idx, pos)
+
+func _select_cube_in_tree(cube_idx: int) -> void:
+	var root := hierarchyList.get_root()
+	if root == null:
+		return
+	var found := _find_cube_item(root, cube_idx)
+	if found != null:
+		hierarchyList.set_selected(found, 0)
+		_on_cube_selected(cube_idx)
+
+func _find_cube_item(item: TreeItem, cube_idx: int) -> TreeItem:
+	var child := item.get_first_child()
+	while child != null:
+		var meta = child.get_metadata(0)
+		if typeof(meta) == TYPE_DICTIONARY and meta["cube"] == true and meta["idx"] == cube_idx:
+			return child
+		var result := _find_cube_item(child, cube_idx)
+		if result != null:
+			return result
+		child = child.get_next()
+	return null
+
+func _select_bone_by_order_pos(order_pos: int) -> void:
+	var bone_idx: int = _current_bone_order[order_pos]
+	var root := hierarchyList.get_root()
+	if root == null:
+		return
+	var found := _find_bone_item(root, bone_idx)
+	if found != null:
+		hierarchyList.set_selected(found, 0)
+		_current_order_pos = order_pos
+		_hide_all_attrs()
+		_note_label.show()
+		_note_edit.show()
+		_updating_attrs = true
+		_note_edit.text = _current_mantle.notes[order_pos]
+		_updating_attrs = false
+		_add_cube_btn.visible = true
+		_del_part_btn.visible = false
+
+func _find_bone_item(item: TreeItem, bone_idx: int) -> TreeItem:
+	var child := item.get_first_child()
+	while child != null:
+		var meta = child.get_metadata(0)
+		if typeof(meta) == TYPE_INT and meta == bone_idx:
+			return child
+		var result := _find_bone_item(child, bone_idx)
+		if result != null:
+			return result
+		child = child.get_next()
+	return null
+
 func _hide_all_attrs() -> void:
 	_note_label.hide()
 	_note_edit.hide()
@@ -227,6 +406,8 @@ func _hide_all_attrs() -> void:
 	_rig_color_picker.hide()
 	_shape_keys_label.hide()
 	_shape_key_container.hide()
+	_cube_label.hide()
+	_cube_slider_container.hide()
 
 func _apply_base_color() -> void:
 	if _current_mantle == null:

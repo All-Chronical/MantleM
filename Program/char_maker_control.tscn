@@ -18,7 +18,7 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_xq6uu")
-hierarchyList = NodePath("HBoxContainer/Hierarchy/Tree")
+hierarchyList = NodePath("HBoxContainer/Hierarchy/VBoxContainer/Tree")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -33,14 +33,42 @@ custom_minimum_size = Vector2(3.05, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Tree" type="Tree" parent="HBoxContainer/Hierarchy"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/Hierarchy"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = -26.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="Tree" type="Tree" parent="HBoxContainer/Hierarchy/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/Hierarchy/VBoxContainer"]
+layout_mode = 2
+
+[node name="AddCBtn" type="Button" parent="HBoxContainer/Hierarchy/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+text = "Add Cube"
+
+[node name="AddFBtn" type="Button" parent="HBoxContainer/Hierarchy/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+text = "Add Flat"
+
+[node name="DelPBtn" type="Button" parent="HBoxContainer/Hierarchy/VBoxContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+text = "Delete Part"
 
 [node name="Viewport" type="Panel" parent="HBoxContainer"]
 layout_mode = 2
@@ -60,7 +88,7 @@ stretch = true
 own_world_3d = true
 world_3d = SubResource("World3D_5sad0")
 handle_input_locally = false
-size = Vector2i(2, 2)
+size = Vector2i(381, 648)
 render_target_update_mode = 4
 
 [node name="Node3D" parent="HBoxContainer/Viewport/SubViewportContainer/SubViewport" instance=ExtResource("1_or0s6")]
@@ -144,4 +172,55 @@ layout_mode = 2
 [node name="HSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/ShapeKeyContainer/ShapeKeyTemplate"]
 layout_mode = 2
 max_value = 1.0
+step = 0.1
+
+[node name="CubeLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Cube Position:"
+
+[node name="CubeSliderContainer" type="VBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="XContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer"]
+layout_mode = 2
+
+[node name="XLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/XContainer"]
+layout_mode = 2
+text = "X"
+
+[node name="XSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/XContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -10.0
+max_value = 10.0
+step = 0.1
+
+[node name="YContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer"]
+layout_mode = 2
+
+[node name="YLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/YContainer"]
+layout_mode = 2
+text = "Y"
+
+[node name="YSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/YContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -10.0
+max_value = 10.0
+step = 0.1
+
+[node name="ZContainer" type="HBoxContainer" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer"]
+layout_mode = 2
+
+[node name="ZLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/ZContainer"]
+layout_mode = 2
+text = "Z"
+
+[node name="ZSlider" type="HSlider" parent="HBoxContainer/Inspector/VBoxContainer/CubeSliderContainer/ZContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -10.0
+max_value = 10.0
 step = 0.1
