@@ -16,6 +16,7 @@ var _jump_hold_time := 0.0
 
 @onready var _skin: Node3D = $Skin
 @onready var _camera: Camera3D = get_viewport().get_camera_3d()
+@onready var _anim_player: AnimationPlayer = $Skin/Rig/AnimationPlayer
 
 
 func _physics_process(delta: float) -> void:
@@ -49,3 +50,10 @@ func _physics_process(delta: float) -> void:
 	_skin.rotation.y = lerp_angle(_skin.rotation.y, target_angle, rotation_speed * delta)
 
 	move_and_slide()
+
+	if not is_on_floor():
+		_anim_player.play("Jump")
+	elif move_direction.length() > 0.1:
+		_anim_player.play("Move")
+	else:
+		_anim_player.play("Idle")
