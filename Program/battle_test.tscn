@@ -1,0 +1,78 @@
+[gd_scene load_steps=8 format=3 uid="uid://doej5vc456moc"]
+
+[ext_resource type="Script" path="res://Program/battle_test_player.gd" id="1_player_script"]
+
+[sub_resource type="PrismMesh" id="PrismMesh_ra753"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.4
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.2, 0.4, 0.9, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_player"]
+material = SubResource("StandardMaterial3D_body")
+radius = 0.4
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nose"]
+albedo_color = Color(0.9, 0.2, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nose"]
+material = SubResource("StandardMaterial3D_nose")
+size = Vector3(0.15, 0.15, 0.15)
+
+[node name="Node3D" type="Node3D"]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="."]
+transform = Transform3D(4.77769, 0, 0, 0, 1, 0, 0, 0, 3.28175, 2.75363, 0, -0.509883)
+use_collision = true
+size = Vector3(2.99739, 0.0409505, 3.91495)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="."]
+transform = Transform3D(4.77769, 0, 0, 0, 1, 0, 0, 0, 3.28175, -4.21147, 0.0437847, -0.467567)
+use_collision = true
+size = Vector3(0.67067, 0.611147, 1)
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="."]
+transform = Transform3D(2.28058, 0, 2.88991, 0, 1, 0, -1.59783, 0, 4.12477, -4.21147, 0.0437847, 5.66293)
+use_collision = true
+size = Vector3(0.67067, 0.611147, 1)
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="."]
+transform = Transform3D(4.77769, 0, 0, 0, 1, 0, 0, 0, 3.28175, 2.75363, 0.4, -3.79164)
+use_collision = true
+mesh = SubResource("PrismMesh_ra753")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.965926, 0.12941, 0.224144, -0.258819, 0.482963, 0.836516, 0, -0.866025, 0.5, 0, 4, 2)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-0.278639, -0.276527, 0.919724, 0, 0.957651, 0.287931, -0.960396, 0.0802287, -0.266839, 7.21032, 6, -5.13079)
+current = true
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.59407, 0)
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+axis_lock_angular_z = true
+floor_snap_length = 0.3
+script = ExtResource("1_player_script")
+move_speed = 5.0
+rotation_speed = 6.0
+gravity = -50.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="Skin" type="Node3D" parent="Player"]
+
+[node name="Body" type="MeshInstance3D" parent="Player/Skin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_player")
+
+[node name="Nose" type="MeshInstance3D" parent="Player/Skin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.45)
+mesh = SubResource("BoxMesh_nose")
