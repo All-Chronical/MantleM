@@ -15,11 +15,16 @@ var _is_jumping := false
 var _jump_hold_time := 0.0
 
 @onready var _skin: Node3D = $Skin
+@onready var _camera: Camera3D = get_viewport().get_camera_3d()
 
 
 func _physics_process(delta: float) -> void:
 	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var move_direction := Vector3(raw_input.x, 0.0, raw_input.y).normalized()
+	var cam_to_player := global_position - _camera.global_position
+	cam_to_player.y = 0.0
+	var forward := cam_to_player.normalized()
+	var right := forward.cross(Vector3.UP).normalized()
+	var move_direction := (-forward * raw_input.y + right * raw_input.x).normalized()
 
 	velocity.x = move_direction.x * move_speed
 	velocity.z = move_direction.z * move_speed
