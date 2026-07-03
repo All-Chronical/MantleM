@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://cy5excdut8gd1"]
+[gd_scene load_steps=6 format=3 uid="uid://cy5excdut8gd1"]
 
 [ext_resource type="PackedScene" uid="uid://ck1uc016b80fj" path="res://Program/char_maker.tscn" id="1_or0s6"]
 [ext_resource type="Script" path="res://Scripts/char_maker_control.gd" id="1_xq6uu"]
+[ext_resource type="Script" path="res://Scripts/viewport_orbit.gd" id="2_vorb"]
 
 [sub_resource type="Environment" id="Environment_qqc3l"]
 
@@ -75,7 +76,7 @@ text = "Delete Part"
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/Viewport"]
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer/Viewport" node_paths=PackedStringArray("pivot")]
 clip_contents = true
 layout_mode = 1
 anchors_preset = 15
@@ -84,6 +85,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 stretch = true
+script = ExtResource("2_vorb")
+pivot = NodePath("SubViewport/Node3D/CameraPivot")
 
 [node name="SubViewport" type="SubViewport" parent="HBoxContainer/Viewport/SubViewportContainer"]
 own_world_3d = true

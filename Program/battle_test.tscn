@@ -1,8 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://doej5vc456moc"]
+[gd_scene load_steps=6 format=3 uid="uid://okdn1jspxg56"]
 
-[ext_resource type="Script" path="res://Program/battle_test_player.gd" id="1_player_script"]
+[ext_resource type="Script" path="res://Scripts/battle_test_player.gd" id="1_rsaqh"]
 [ext_resource type="Script" path="res://Scripts/mantle_skin.gd" id="2_mskin"]
-[ext_resource type="Resource" uid="uid://pm6rtcenr4xq" path="res://Mantles/blank.tres" id="3_ii4n1"]
+[ext_resource type="Resource" path="res://Mantles/fed.tres" id="3_abrea"]
 
 [sub_resource type="PrismMesh" id="PrismMesh_ra753"]
 
@@ -45,7 +45,7 @@ axis_lock_angular_x = true
 axis_lock_angular_y = true
 axis_lock_angular_z = true
 floor_snap_length = 0.3
-script = ExtResource("1_player_script")
+script = ExtResource("1_rsaqh")
 move_speed = 5.0
 rotation_speed = 6.0
 jump_initial_impulse = 14.0
@@ -62,4 +62,4 @@ transform = Transform3D(0.158, 0, 0, 0, 0.158, 0, 0, 0, 0.158, 0, 0.277949, 0)
 [node name="MantleSkin" type="Node3D" parent="Player/Skin"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 script = ExtResource("2_mskin")
-mantle = ExtResource("3_ii4n1")
+mantle = ExtResource("3_abrea")
