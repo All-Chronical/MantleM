@@ -1,13 +1,7 @@
 extends Control
 
-const BLANK_MANTLE_PATH := "res://Mantles/blank.tres"
-const BASE_NODE_PATHS: Array[String] = [
-	"HBoxContainer/Viewport/SubViewportContainer/SubViewport/Node3D/Humanoid_mk6",
-]
-
 @export var hierarchyList: Tree
-@export var skeleton: Skeleton3D
-@export var mesh: MeshInstance3D
+@export var mantle_skin: MantleSkin
 
 @onready var _mantle_picker: OptionButton = $HBoxContainer/Viewport/OptionButton
 @onready var _note_label: Label = $HBoxContainer/Inspector/VBoxContainer/Label
@@ -48,11 +42,6 @@ const BASE_NODE_PATHS: Array[String] = [
 @onready var _flat_sy_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/YContainer/YSlider
 @onready var _flat_sz_slider: HSlider = $HBoxContainer/Inspector/VBoxContainer/FlatScaleSliderContainer/ZContainer/ZSlider
 
-var _base_nodes: Array[Node3D] = []
-var _bone_order_cache: Dictionary = {}
-var _blend_shape_cache: Dictionary = {}
-var _current_rig_type: int = -1
-
 var _original_mantle: Mantle = null
 var _current_mantle: Mantle = null
 var _current_mantle_path: String = ""
@@ -66,16 +55,11 @@ var _save_as_name_edit: LineEdit
 var _overwrite_dialog: ConfirmationDialog
 var _pending_save_path: String = ""
 
-var _cube_meshes: Dictionary = {}
 var _selected_cube_idx: int = -1
-var _flat_meshes: Dictionary = {}
 var _selected_flat_idx: int = -1
 var _selected_part_type: int = 0
 
 func _ready():
-	for path in BASE_NODE_PATHS:
-		_base_nodes.append(get_node(path) as Node3D)
-
 	hierarchyList.item_selected.connect(_on_bone_selected)
 	hierarchyList.nothing_selected.connect(_on_bone_deselected)
 
@@ -116,10 +100,13 @@ func _rebuild_hierarchy() -> void:
 	var root := hierarchyList.create_item()
 	root.set_text(0, "Rig")
 	root.set_metadata(0, -1)
+	var skeleton := mantle_skin.get_skeleton()
+	if skeleton == null:
+		return
 	for bone_idx in skeleton.get_parentless_bones():
-		_add_bone_to_tree(bone_idx, root)
+		_add_bone_to_tree(bone_idx, root, skeleton)
 
-func _add_bone_to_tree(bone_idx: int, parent_item: TreeItem) -> void:
+func _add_bone_to_tree(bone_idx: int, parent_item: TreeItem, skeleton: Skeleton3D) -> void:
 	var item := hierarchyList.create_item(parent_item)
 	item.set_text(0, skeleton.get_bone_name(bone_idx))
 	item.set_metadata(0, bone_idx)
@@ -136,40 +123,15 @@ func _add_bone_to_tree(bone_idx: int, parent_item: TreeItem) -> void:
 				flat_item.set_text(0, "Flat Part")
 				flat_item.set_metadata(0, {"type": 2, "idx": i})
 	for child_idx in skeleton.get_bone_children(bone_idx):
-		_add_bone_to_tree(child_idx, item)
-
-func _swap_base(rig_type: int) -> void:
-	for base in _base_nodes:
-		base.visible = false
-	var base := _base_nodes[rig_type]
-	base.visible = true
-	skeleton = base.find_children("*", "Skeleton3D", true, false)[0]
-	mesh = skeleton.find_children("*", "MeshInstance3D", true, false)[0]
-	if not _blend_shape_cache.has(rig_type):
-		var names := PackedStringArray()
-		var arr_mesh := mesh.mesh as ArrayMesh
-		if arr_mesh != null:
-			for i in range(arr_mesh.get_blend_shape_count()):
-				names.append(arr_mesh.get_blend_shape_name(i))
-		_blend_shape_cache[rig_type] = names
-	_rebuild_hierarchy()
-	_current_rig_type = rig_type
+		_add_bone_to_tree(child_idx, item, skeleton)
 
 func _refresh_mantle_options() -> void:
 	_mantle_picker.clear()
 	_mantle_paths.clear()
-	var dir := DirAccess.open("res://Mantles/")
-	if dir == null:
-		return
-	dir.list_dir_begin()
-	var fname := dir.get_next()
-	while fname != "":
-		if fname.ends_with(".tres"):
-			_mantle_picker.add_item(fname.get_basename())
-			print(fname.get_basename())
-			_mantle_paths.append("res://Mantles/" + fname)
-		fname = dir.get_next()
-	dir.list_dir_end()
+	_mantle_paths = MantleSerializer.list_mantle_paths()
+	for path in _mantle_paths:
+		_mantle_picker.add_item(path.get_file().get_basename())
+		print(path.get_file().get_basename())
 
 func _on_mantle_selected(id: int) -> void:
 	if id >= _mantle_paths.size():
@@ -177,64 +139,16 @@ func _on_mantle_selected(id: int) -> void:
 	var mantle := load(_mantle_paths[id]) as Mantle
 	if mantle == null:
 		return
-	if mantle.rigType >= _base_nodes.size():
-		push_error("[Mantle] rigType %d out of range, only %d bases registered" % [mantle.rigType, _base_nodes.size()])
+	if not MantleSkin.RIG_SCENES.has(mantle.rigType):
+		push_error("[Mantle] rigType %d not in RIG_SCENES" % mantle.rigType)
 		return
 	_current_mantle_path = _mantle_paths[id]
 	_original_mantle = mantle
 	_current_mantle = _original_mantle.duplicate()
-	if mantle.rigType != _current_rig_type:
-		_swap_base(mantle.rigType)
-	_current_bone_order = _get_bone_order(mantle.rigType)
-	var blend_shape_count: int = _blend_shape_cache[mantle.rigType].size()
-	var _notes := _current_mantle.notes
-	if _notes.size() < _current_bone_order.size():
-		_notes.resize(_current_bone_order.size())
-		_current_mantle.notes = _notes
-	var _shape_keys := _current_mantle.shapeKeyValues
-	if _shape_keys.size() < blend_shape_count:
-		_shape_keys.resize(blend_shape_count)
-		_current_mantle.shapeKeyValues = _shape_keys
-	var _cube_colors := _current_mantle.cubeColors
-	var _cube_count := _current_mantle.cubeBoneIndices.size()
-	if _cube_colors.size() < _cube_count:
-		var _old_color_size := _cube_colors.size()
-		_cube_colors.resize(_cube_count)
-		for i in range(_old_color_size, _cube_count):
-			_cube_colors[i] = Color.WHITE
-		_current_mantle.cubeColors = _cube_colors
-	var _flat_colors := _current_mantle.flatColors
-	var _flat_count := _current_mantle.flatBoneIndices.size()
-	if _flat_colors.size() < _flat_count:
-		var _old_flat_color_size := _flat_colors.size()
-		_flat_colors.resize(_flat_count)
-		for i in range(_old_flat_color_size, _flat_count):
-			_flat_colors[i] = Color.WHITE
-		_current_mantle.flatColors = _flat_colors
-	var _flat_positions := _current_mantle.flatPositions
-	if _flat_positions.size() < _flat_count:
-		_flat_positions.resize(_flat_count)
-		_current_mantle.flatPositions = _flat_positions
-	var _cube_scales := _current_mantle.cubeScales
-	if _cube_scales.size() < _cube_count:
-		var _old_cube_scale_size := _cube_scales.size()
-		_cube_scales.resize(_cube_count)
-		for i in range(_old_cube_scale_size, _cube_count):
-			_cube_scales[i] = Vector3.ONE
-		_current_mantle.cubeScales = _cube_scales
-	var _flat_scales := _current_mantle.flatScales
-	if _flat_scales.size() < _flat_count:
-		var _old_flat_scale_size := _flat_scales.size()
-		_flat_scales.resize(_flat_count)
-		for i in range(_old_flat_scale_size, _flat_count):
-			_flat_scales[i] = Vector3.ONE
-		_current_mantle.flatScales = _flat_scales
+	mantle_skin.apply_mantle(_current_mantle)
+	_current_bone_order = mantle_skin.get_bone_order()
 	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " notes_size=", _current_mantle.notes.size(), " shape_keys=", _current_mantle.shapeKeyValues.size())
 	_save_btn.disabled = false
-	_apply_base_color()
-	_apply_shape_keys()
-	_spawn_all_cube_meshes()
-	_spawn_all_flat_meshes()
 	_rebuild_hierarchy()
 	_on_bone_deselected()
 
@@ -255,6 +169,7 @@ func _on_bone_selected() -> void:
 	if bone_idx < 0:
 		_on_rig_selected()
 		return
+	var skeleton := mantle_skin.get_skeleton()
 	var bone_name: String = skeleton.get_bone_name(bone_idx)
 	var order_pos := _current_bone_order.find(bone_idx)
 	if order_pos < 0:
@@ -380,7 +295,7 @@ func _populate_shape_key_sliders() -> void:
 			child.queue_free()
 	if _current_mantle == null:
 		return
-	var names: PackedStringArray = _blend_shape_cache[_current_rig_type]
+	var names: PackedStringArray = mantle_skin.get_blend_shape_names()
 	for i in range(names.size()):
 		var unit := _shape_key_template.duplicate() as VBoxContainer
 		unit.visible = true
@@ -397,7 +312,7 @@ func _on_shape_key_changed(value: float, idx: int) -> void:
 	var values := _current_mantle.shapeKeyValues
 	values[idx] = value
 	_current_mantle.shapeKeyValues = values
-	mesh.set_blend_shape_value(idx, value)
+	mantle_skin.apply_shape_key(idx, value)
 
 func _on_add_cube_pressed() -> void:
 	if _current_mantle == null or _current_order_pos < 0:
@@ -417,7 +332,7 @@ func _on_add_cube_pressed() -> void:
 	scales.append(Vector3.ONE)
 	_current_mantle.cubeScales = scales
 	var new_cube_idx: int = _current_mantle.cubeBoneIndices.size() - 1
-	_spawn_cube_mesh(new_cube_idx, bone_idx, Vector3.ZERO, _current_mantle.baseColor, Vector3.ONE)
+	mantle_skin.spawn_cube(new_cube_idx, bone_idx, Vector3.ZERO, _current_mantle.baseColor, Vector3.ONE)
 	print("[Cube] added idx=", new_cube_idx, " bone_order_pos=", bone_order_pos)
 	_rebuild_hierarchy()
 	_select_cube_in_tree(new_cube_idx)
@@ -440,7 +355,7 @@ func _on_add_flat_pressed() -> void:
 	scales.append(Vector3.ONE)
 	_current_mantle.flatScales = scales
 	var new_flat_idx: int = _current_mantle.flatBoneIndices.size() - 1
-	_spawn_flat_mesh(new_flat_idx, bone_idx, Vector3.ZERO, _current_mantle.baseColor, Vector3.ONE)
+	mantle_skin.spawn_flat(new_flat_idx, bone_idx, Vector3.ZERO, _current_mantle.baseColor, Vector3.ONE)
 	print("[Flat] added idx=", new_flat_idx, " bone_order_pos=", bone_order_pos)
 	_rebuild_hierarchy()
 	_select_flat_in_tree(new_flat_idx)
@@ -455,14 +370,7 @@ func _on_del_part_pressed() -> void:
 
 func _delete_cube(del_idx: int) -> void:
 	var bone_order_pos: int = _current_mantle.cubeBoneIndices[del_idx]
-	if _cube_meshes.has(del_idx):
-		_cube_meshes[del_idx].get_parent().queue_free()
-		_cube_meshes.erase(del_idx)
-	var new_meshes: Dictionary = {}
-	for old_idx in _cube_meshes.keys():
-		var new_idx: int = old_idx if old_idx < del_idx else old_idx - 1
-		new_meshes[new_idx] = _cube_meshes[old_idx]
-	_cube_meshes = new_meshes
+	mantle_skin.despawn_cube(del_idx)
 	var indices := _current_mantle.cubeBoneIndices
 	indices.remove_at(del_idx)
 	_current_mantle.cubeBoneIndices = indices
@@ -483,14 +391,7 @@ func _delete_cube(del_idx: int) -> void:
 
 func _delete_flat(del_idx: int) -> void:
 	var bone_order_pos: int = _current_mantle.flatBoneIndices[del_idx]
-	if _flat_meshes.has(del_idx):
-		_flat_meshes[del_idx].get_parent().queue_free()
-		_flat_meshes.erase(del_idx)
-	var new_meshes: Dictionary = {}
-	for old_idx in _flat_meshes.keys():
-		var new_idx: int = old_idx if old_idx < del_idx else old_idx - 1
-		new_meshes[new_idx] = _flat_meshes[old_idx]
-	_flat_meshes = new_meshes
+	mantle_skin.despawn_flat(del_idx)
 	var indices := _current_mantle.flatBoneIndices
 	indices.remove_at(del_idx)
 	_current_mantle.flatBoneIndices = indices
@@ -516,10 +417,7 @@ func _on_cube_slider_changed(_value: float) -> void:
 	var positions := _current_mantle.cubePositions
 	positions[_selected_cube_idx] = pos
 	_current_mantle.cubePositions = positions
-	if _cube_meshes.has(_selected_cube_idx):
-		var mesh_inst = _cube_meshes[_selected_cube_idx]
-		var bone_origin = mesh_inst.get_parent().global_position
-		mesh_inst.global_position = bone_origin + pos
+	mantle_skin.update_cube_position(_selected_cube_idx, pos)
 	print("[Cube] pos updated idx=", _selected_cube_idx, " pos=", pos)
 
 func _on_cube_color_changed(color: Color) -> void:
@@ -528,8 +426,7 @@ func _on_cube_color_changed(color: Color) -> void:
 	var colors := _current_mantle.cubeColors
 	colors[_selected_cube_idx] = color
 	_current_mantle.cubeColors = colors
-	if _cube_meshes.has(_selected_cube_idx):
-		(_cube_meshes[_selected_cube_idx].material_override as StandardMaterial3D).albedo_color = color
+	mantle_skin.update_cube_color(_selected_cube_idx, color)
 	print("[Cube] color updated idx=", _selected_cube_idx, " color=", color)
 
 func _on_cube_scale_changed(_value: float) -> void:
@@ -539,8 +436,7 @@ func _on_cube_scale_changed(_value: float) -> void:
 	var scales := _current_mantle.cubeScales
 	scales[_selected_cube_idx] = scl
 	_current_mantle.cubeScales = scales
-	if _cube_meshes.has(_selected_cube_idx):
-		_cube_meshes[_selected_cube_idx].scale = scl
+	mantle_skin.update_cube_scale(_selected_cube_idx, scl)
 	print("[Cube] scale updated idx=", _selected_cube_idx, " scale=", scl)
 
 func _on_flat_slider_changed(_value: float) -> void:
@@ -550,8 +446,7 @@ func _on_flat_slider_changed(_value: float) -> void:
 	var positions := _current_mantle.flatPositions
 	positions[_selected_flat_idx] = pos
 	_current_mantle.flatPositions = positions
-	if _flat_meshes.has(_selected_flat_idx):
-		_flat_meshes[_selected_flat_idx].position = pos
+	mantle_skin.update_flat_position(_selected_flat_idx, pos)
 	print("[Flat] pos updated idx=", _selected_flat_idx, " pos=", pos)
 
 func _on_flat_color_changed(color: Color) -> void:
@@ -560,8 +455,7 @@ func _on_flat_color_changed(color: Color) -> void:
 	var colors := _current_mantle.flatColors
 	colors[_selected_flat_idx] = color
 	_current_mantle.flatColors = colors
-	if _flat_meshes.has(_selected_flat_idx):
-		(_flat_meshes[_selected_flat_idx].material_override as StandardMaterial3D).albedo_color = color
+	mantle_skin.update_flat_color(_selected_flat_idx, color)
 	print("[Flat] color updated idx=", _selected_flat_idx, " color=", color)
 
 func _on_flat_scale_changed(_value: float) -> void:
@@ -571,75 +465,8 @@ func _on_flat_scale_changed(_value: float) -> void:
 	var scales := _current_mantle.flatScales
 	scales[_selected_flat_idx] = scl
 	_current_mantle.flatScales = scales
-	if _flat_meshes.has(_selected_flat_idx):
-		_flat_meshes[_selected_flat_idx].scale = scl
+	mantle_skin.update_flat_scale(_selected_flat_idx, scl)
 	print("[Flat] scale updated idx=", _selected_flat_idx, " scale=", scl)
-
-func _spawn_cube_mesh(cube_idx: int, bone_idx: int, pos: Vector3, color: Color, scl: Vector3) -> void:
-	var attachment := BoneAttachment3D.new()
-	attachment.bone_idx = bone_idx
-	skeleton.add_child(attachment)
-	var mesh_inst := MeshInstance3D.new()
-	mesh_inst.mesh = BoxMesh.new()
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mesh_inst.material_override = mat
-	attachment.add_child(mesh_inst)
-	mesh_inst.scale = scl
-	_cube_meshes[cube_idx] = mesh_inst
-	_apply_cube_position.call_deferred(cube_idx, pos)
-
-func _apply_cube_position(cube_idx: int, pos: Vector3) -> void:
-	if not _cube_meshes.has(cube_idx):
-		return
-	var mesh_inst = _cube_meshes[cube_idx]
-	if not is_instance_valid(mesh_inst):
-		return
-	mesh_inst.global_position = mesh_inst.get_parent().global_position + pos
-
-func _spawn_all_cube_meshes() -> void:
-	for mesh_inst in _cube_meshes.values():
-		mesh_inst.get_parent().queue_free()
-	_cube_meshes.clear()
-	if _current_mantle == null:
-		return
-	for i in range(_current_mantle.cubeBoneIndices.size()):
-		var order_pos: int = _current_mantle.cubeBoneIndices[i]
-		var bone_idx: int = _current_bone_order[order_pos]
-		var pos: Vector3 = _current_mantle.cubePositions[i]
-		var color: Color = _current_mantle.cubeColors[i]
-		var scl: Vector3 = _current_mantle.cubeScales[i]
-		_spawn_cube_mesh(i, bone_idx, pos, color, scl)
-
-func _spawn_flat_mesh(flat_idx: int, bone_idx: int, pos: Vector3, color: Color, scl: Vector3) -> void:
-	var attachment := BoneAttachment3D.new()
-	attachment.bone_idx = bone_idx
-	skeleton.add_child(attachment)
-	var mesh_inst := MeshInstance3D.new()
-	mesh_inst.mesh = PlaneMesh.new()
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mesh_inst.material_override = mat
-	attachment.add_child(mesh_inst)
-	mesh_inst.rotation_degrees = Vector3(90.0, 0.0, 0.0)
-	mesh_inst.position = pos
-	mesh_inst.scale = scl
-	_flat_meshes[flat_idx] = mesh_inst
-
-func _spawn_all_flat_meshes() -> void:
-	for mesh_inst in _flat_meshes.values():
-		mesh_inst.get_parent().queue_free()
-	_flat_meshes.clear()
-	if _current_mantle == null:
-		return
-	for i in range(_current_mantle.flatBoneIndices.size()):
-		var order_pos: int = _current_mantle.flatBoneIndices[i]
-		var bone_idx: int = _current_bone_order[order_pos]
-		var pos: Vector3 = _current_mantle.flatPositions[i]
-		var color: Color = _current_mantle.flatColors[i]
-		var scl: Vector3 = _current_mantle.flatScales[i]
-		_spawn_flat_mesh(i, bone_idx, pos, color, scl)
 
 func _select_cube_in_tree(cube_idx: int) -> void:
 	var root := hierarchyList.get_root()
@@ -736,57 +563,21 @@ func _hide_all_attrs() -> void:
 	_flat_color_label.hide()
 	_flat_color_picker.hide()
 
-func _apply_base_color() -> void:
-	if _current_mantle == null:
-		return
-	var surface_count := mesh.mesh.get_surface_count()
-	if surface_count != 1:
-		push_error("[Mantle] Expected 1 surface on skin mesh, found: " + str(surface_count))
-		return
-	var mat := mesh.get_active_material(0)
-	if mat == null:
-		push_error("[Mantle] Skin mesh surface 0 has no material")
-		return
-	if not mat is StandardMaterial3D:
-		push_error("[Mantle] Skin mesh surface 0 is not StandardMaterial3D, got: " + mat.get_class())
-		return
-	(mat as StandardMaterial3D).albedo_color = _current_mantle.baseColor
-
-func _apply_shape_keys() -> void:
-	if _current_mantle == null:
-		return
-	for i in range(_current_mantle.shapeKeyValues.size()):
-		mesh.set_blend_shape_value(i, _current_mantle.shapeKeyValues[i])
-
 func _on_color_changed(color: Color) -> void:
 	if _updating_attrs or _current_mantle == null:
 		return
 	_current_mantle.baseColor = color
-	_apply_base_color()
+	mantle_skin.apply_base_color()
 
 func _on_rig_note_changed() -> void:
 	if _updating_attrs or _current_mantle == null:
 		return
 	_current_mantle.rigNote = _rig_note_edit.text
 
-func _get_bone_order(rig_type: int) -> PackedInt32Array:
-	if _bone_order_cache.has(rig_type):
-		return _bone_order_cache[rig_type]
-	var order := PackedInt32Array()
-	for bone_idx in skeleton.get_parentless_bones():
-		_build_bone_order(bone_idx, order)
-	_bone_order_cache[rig_type] = order
-	return order
-
-func _build_bone_order(bone_idx: int, order: PackedInt32Array) -> void:
-	order.append(bone_idx)
-	for child_idx in skeleton.get_bone_children(bone_idx):
-		_build_bone_order(child_idx, order)
-
 func _on_save_pressed() -> void:
 	if _current_mantle == null:
 		return
-	if _current_mantle_path == BLANK_MANTLE_PATH:
+	if MantleSerializer.is_blank(_current_mantle_path):
 		_save_as_name_edit.text = ""
 		_save_as_dialog.get_ok_button().disabled = true
 		_save_as_dialog.popup_centered()
@@ -797,39 +588,33 @@ func _on_save_as_name_changed(text: String) -> void:
 	_save_as_dialog.get_ok_button().disabled = text.strip_edges().is_empty()
 
 func _on_save_as_confirmed() -> void:
-	var name := _save_as_name_edit.text.strip_edges()
-	if name.is_empty():
+	var mantle_name := _save_as_name_edit.text.strip_edges()
+	if mantle_name.is_empty():
 		return
-	var path := "res://Mantles/" + name + ".tres"
-	if ResourceLoader.exists(path):
-		_pending_save_path = path
-		_overwrite_dialog.dialog_text = "'" + name + "' already exists. Overwrite?"
+	var result := MantleSerializer.save_as(_current_mantle, mantle_name)
+	if result["needs_overwrite"]:
+		_pending_save_path = result["path"]
+		_overwrite_dialog.dialog_text = "'" + mantle_name + "' already exists. Overwrite?"
 		_overwrite_dialog.popup_centered()
-	else:
-		_do_save(path, name)
+	elif result["error"] == OK:
+		_current_mantle_path = result["path"]
+		_original_mantle = _current_mantle.duplicate()
+		_refresh_mantle_options()
+		_select_mantle_by_name(mantle_name)
 
 func _on_overwrite_confirmed() -> void:
-	var name := _save_as_name_edit.text.strip_edges()
-	_do_save(_pending_save_path, name)
+	var mantle_name := _save_as_name_edit.text.strip_edges()
+	var err := MantleSerializer.overwrite_save(_current_mantle, _pending_save_path)
+	if err == OK:
+		_current_mantle_path = _pending_save_path
+		_original_mantle = _current_mantle.duplicate()
+		_refresh_mantle_options()
+		_select_mantle_by_name(mantle_name)
 
 func _do_quick_save() -> void:
-	var err := ResourceSaver.save(_current_mantle, _current_mantle_path)
-	if err != OK:
-		push_error("[Mantle] Quick save failed: " + str(err))
-		return
-	_original_mantle = _current_mantle.duplicate()
-	print("[Mantle] Quick saved to: ", _current_mantle_path)
-
-func _do_save(path: String, mantle_name: String) -> void:
-	var err := ResourceSaver.save(_current_mantle, path)
-	if err != OK:
-		push_error("[Mantle] Save failed: " + str(err))
-		return
-	_current_mantle_path = path
-	_original_mantle = _current_mantle.duplicate()
-	print("[Mantle] Saved to: ", path)
-	_refresh_mantle_options()
-	_select_mantle_by_name(mantle_name)
+	var err := MantleSerializer.quick_save(_current_mantle, _current_mantle_path)
+	if err == OK:
+		_original_mantle = _current_mantle.duplicate()
 
 func _select_mantle_by_name(mantle_name: String) -> void:
 	for i in range(_mantle_picker.item_count):
