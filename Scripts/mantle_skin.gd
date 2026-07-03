@@ -3,6 +3,7 @@ class_name MantleSkin
 
 const RIG_SCENES: Dictionary = {
 	0: "res://Assets/Rigs/Humanoid_mk6.glb",
+	1: "res://Assets/Rigs/Humanoid_mk8.glb",
 }
 
 @export var mantle: Mantle:

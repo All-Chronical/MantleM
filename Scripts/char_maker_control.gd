@@ -3,6 +3,7 @@ extends Control
 @export var hierarchyList: Tree
 @export var mantle_skin: MantleSkin
 
+@onready var _create_btn: Button = $HBoxContainer/Viewport/CreateBtn
 @onready var _mantle_picker: OptionButton = $HBoxContainer/Viewport/OptionButton
 @onready var _note_label: Label = $HBoxContainer/Inspector/VBoxContainer/Label
 @onready var _note_edit: TextEdit = $HBoxContainer/Inspector/VBoxContainer/TextEdit
@@ -11,6 +12,7 @@ extends Control
 @onready var _rig_color_label: Label = $HBoxContainer/Inspector/VBoxContainer/BaseColorLabel
 @onready var _rig_color_picker: ColorPickerButton = $HBoxContainer/Inspector/VBoxContainer/BaseColorPicker
 @onready var _save_btn: Button = $HBoxContainer/Viewport/SaveBtn
+@onready var _save_copy_btn: Button = $HBoxContainer/Viewport/SaveCopyBtn
 @onready var _shape_keys_label: Label = $HBoxContainer/Inspector/VBoxContainer/ShapeKeysLabel
 @onready var _shape_key_container: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/ShapeKeyContainer
 @onready var _shape_key_template: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/ShapeKeyContainer/ShapeKeyTemplate
@@ -50,10 +52,14 @@ var _current_order_pos: int = -1
 var _mantle_paths: Array[String] = []
 var _updating_attrs: bool = false
 
-var _save_as_dialog: ConfirmationDialog
-var _save_as_name_edit: LineEdit
+var _create_dialog: ConfirmationDialog
+var _create_name_edit: LineEdit
+var _create_base_list: ItemList
+var _save_copy_dialog: ConfirmationDialog
+var _save_copy_name_edit: LineEdit
 var _overwrite_dialog: ConfirmationDialog
 var _pending_save_path: String = ""
+var _pending_overwrite_context: String = ""
 
 var _selected_cube_idx: int = -1
 var _selected_flat_idx: int = -1
@@ -63,9 +69,13 @@ func _ready():
 	hierarchyList.item_selected.connect(_on_bone_selected)
 	hierarchyList.nothing_selected.connect(_on_bone_deselected)
 
+	_create_btn.pressed.connect(_on_create_pressed)
 	_save_btn.disabled = true
+	_save_copy_btn.disabled = true
 	_save_btn.pressed.connect(_on_save_pressed)
-	_build_save_as_dialog()
+	_save_copy_btn.pressed.connect(_on_save_copy_pressed)
+	_build_create_dialog()
+	_build_save_copy_dialog()
 	_build_overwrite_dialog()
 
 	_note_edit.text_changed.connect(_on_note_changed)
@@ -149,6 +159,7 @@ func _on_mantle_selected(id: int) -> void:
 	_current_bone_order = mantle_skin.get_bone_order()
 	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " notes_size=", _current_mantle.notes.size(), " shape_keys=", _current_mantle.shapeKeyValues.size())
 	_save_btn.disabled = false
+	_save_copy_btn.disabled = false
 	_rebuild_hierarchy()
 	_on_bone_deselected()
 
@@ -574,26 +585,78 @@ func _on_rig_note_changed() -> void:
 		return
 	_current_mantle.rigNote = _rig_note_edit.text
 
+func _on_create_pressed() -> void:
+	_create_name_edit.text = ""
+	_create_base_list.deselect_all()
+	_create_dialog.get_ok_button().disabled = true
+	_create_dialog.popup_centered()
+
+func _on_create_name_changed(_text: String) -> void:
+	_update_create_ok_state()
+
+func _on_create_base_selected(_idx: int) -> void:
+	_update_create_ok_state()
+
+func _update_create_ok_state() -> void:
+	var has_name := not _create_name_edit.text.strip_edges().is_empty()
+	var has_base := _create_base_list.get_selected_items().size() > 0
+	_create_dialog.get_ok_button().disabled = not (has_name and has_base)
+
+func _on_create_confirmed() -> void:
+	var mantle_name := _create_name_edit.text.strip_edges()
+	if mantle_name.is_empty():
+		return
+	var selected := _create_base_list.get_selected_items()
+	if selected.size() == 0:
+		return
+	var rig_type: int = _create_base_list.get_item_metadata(selected[0])
+	var result := MantleSerializer.create_mantle(rig_type, mantle_name)
+	if result["needs_overwrite"]:
+		_pending_save_path = result["path"]
+		_pending_overwrite_context = "create"
+		_overwrite_dialog.dialog_text = "'" + mantle_name + "' already exists. Overwrite?"
+		_overwrite_dialog.popup_centered()
+	elif result["error"] == OK:
+		_load_created_mantle(result["mantle"], result["path"], mantle_name)
+
+func _load_created_mantle(m: Mantle, path: String, mantle_name: String) -> void:
+	_current_mantle_path = path
+	_original_mantle = m
+	_current_mantle = _original_mantle.duplicate()
+	mantle_skin.apply_mantle(_current_mantle)
+	_current_bone_order = mantle_skin.get_bone_order()
+	_save_btn.disabled = false
+	_save_copy_btn.disabled = false
+	_refresh_mantle_options()
+	_select_mantle_by_name(mantle_name)
+	_rebuild_hierarchy()
+	_on_bone_deselected()
+
 func _on_save_pressed() -> void:
 	if _current_mantle == null:
 		return
-	if MantleSerializer.is_blank(_current_mantle_path):
-		_save_as_name_edit.text = ""
-		_save_as_dialog.get_ok_button().disabled = true
-		_save_as_dialog.popup_centered()
-	else:
-		_do_quick_save()
+	var err := MantleSerializer.quick_save(_current_mantle, _current_mantle_path)
+	if err == OK:
+		_original_mantle = _current_mantle.duplicate()
 
-func _on_save_as_name_changed(text: String) -> void:
-	_save_as_dialog.get_ok_button().disabled = text.strip_edges().is_empty()
+func _on_save_copy_pressed() -> void:
+	if _current_mantle == null:
+		return
+	_save_copy_name_edit.text = ""
+	_save_copy_dialog.get_ok_button().disabled = true
+	_save_copy_dialog.popup_centered()
 
-func _on_save_as_confirmed() -> void:
-	var mantle_name := _save_as_name_edit.text.strip_edges()
+func _on_save_copy_name_changed(text: String) -> void:
+	_save_copy_dialog.get_ok_button().disabled = text.strip_edges().is_empty()
+
+func _on_save_copy_confirmed() -> void:
+	var mantle_name := _save_copy_name_edit.text.strip_edges()
 	if mantle_name.is_empty():
 		return
 	var result := MantleSerializer.save_as(_current_mantle, mantle_name)
 	if result["needs_overwrite"]:
 		_pending_save_path = result["path"]
+		_pending_overwrite_context = "save_copy"
 		_overwrite_dialog.dialog_text = "'" + mantle_name + "' already exists. Overwrite?"
 		_overwrite_dialog.popup_centered()
 	elif result["error"] == OK:
@@ -603,18 +666,23 @@ func _on_save_as_confirmed() -> void:
 		_select_mantle_by_name(mantle_name)
 
 func _on_overwrite_confirmed() -> void:
-	var mantle_name := _save_as_name_edit.text.strip_edges()
-	var err := MantleSerializer.overwrite_save(_current_mantle, _pending_save_path)
-	if err == OK:
-		_current_mantle_path = _pending_save_path
-		_original_mantle = _current_mantle.duplicate()
-		_refresh_mantle_options()
-		_select_mantle_by_name(mantle_name)
-
-func _do_quick_save() -> void:
-	var err := MantleSerializer.quick_save(_current_mantle, _current_mantle_path)
-	if err == OK:
-		_original_mantle = _current_mantle.duplicate()
+	if _pending_overwrite_context == "create":
+		var mantle_name := _create_name_edit.text.strip_edges()
+		var selected := _create_base_list.get_selected_items()
+		if selected.size() == 0:
+			return
+		var rig_type: int = _create_base_list.get_item_metadata(selected[0])
+		var result := MantleSerializer.force_create_mantle(rig_type, _pending_save_path)
+		if result["error"] == OK:
+			_load_created_mantle(result["mantle"], result["path"], mantle_name)
+	elif _pending_overwrite_context == "save_copy":
+		var mantle_name := _save_copy_name_edit.text.strip_edges()
+		var err := MantleSerializer.overwrite_save(_current_mantle, _pending_save_path)
+		if err == OK:
+			_current_mantle_path = _pending_save_path
+			_original_mantle = _current_mantle.duplicate()
+			_refresh_mantle_options()
+			_select_mantle_by_name(mantle_name)
 
 func _select_mantle_by_name(mantle_name: String) -> void:
 	for i in range(_mantle_picker.item_count):
@@ -622,22 +690,49 @@ func _select_mantle_by_name(mantle_name: String) -> void:
 			_mantle_picker.select(i)
 			break
 
-func _build_save_as_dialog() -> void:
-	_save_as_dialog = ConfirmationDialog.new()
-	_save_as_dialog.title = "saving..."
-	_save_as_dialog.min_size = Vector2i(300, 100)
+func _build_create_dialog() -> void:
+	_create_dialog = ConfirmationDialog.new()
+	_create_dialog.title = "Create Mantle"
+	_create_dialog.min_size = Vector2i(300, 200)
+	var vbox := VBoxContainer.new()
+	var name_label := Label.new()
+	name_label.text = "Name:"
+	_create_name_edit = LineEdit.new()
+	var warning_label := Label.new()
+	warning_label.text = "Pick a base. This can't be changed later!"
+	_create_base_list = ItemList.new()
+	_create_base_list.custom_minimum_size = Vector2(0, 60)
+	for rig_type in MantleSkin.RIG_SCENES.keys():
+		var path: String = MantleSkin.RIG_SCENES[rig_type]
+		var display_name: String = path.get_file().get_basename()
+		_create_base_list.add_item(display_name)
+		_create_base_list.set_item_metadata(_create_base_list.item_count - 1, rig_type)
+	vbox.add_child(name_label)
+	vbox.add_child(_create_name_edit)
+	vbox.add_child(warning_label)
+	vbox.add_child(_create_base_list)
+	_create_dialog.add_child(vbox)
+	add_child(_create_dialog)
+	_create_dialog.confirmed.connect(_on_create_confirmed)
+	_create_name_edit.text_changed.connect(_on_create_name_changed)
+	_create_base_list.item_selected.connect(_on_create_base_selected)
+
+func _build_save_copy_dialog() -> void:
+	_save_copy_dialog = ConfirmationDialog.new()
+	_save_copy_dialog.title = "Save Copy"
+	_save_copy_dialog.min_size = Vector2i(300, 100)
 	var lbl := Label.new()
-	lbl.text = "name:"
-	_save_as_name_edit = LineEdit.new()
-	_save_as_dialog.add_child(lbl)
-	_save_as_dialog.add_child(_save_as_name_edit)
-	add_child(_save_as_dialog)
-	_save_as_dialog.confirmed.connect(_on_save_as_confirmed)
-	_save_as_name_edit.text_changed.connect(_on_save_as_name_changed)
+	lbl.text = "Name:"
+	_save_copy_name_edit = LineEdit.new()
+	_save_copy_dialog.add_child(lbl)
+	_save_copy_dialog.add_child(_save_copy_name_edit)
+	add_child(_save_copy_dialog)
+	_save_copy_dialog.confirmed.connect(_on_save_copy_confirmed)
+	_save_copy_name_edit.text_changed.connect(_on_save_copy_name_changed)
 
 func _build_overwrite_dialog() -> void:
 	_overwrite_dialog = ConfirmationDialog.new()
-	_overwrite_dialog.title = "overwrite?"
+	_overwrite_dialog.title = "Overwrite?"
 	_overwrite_dialog.min_size = Vector2i(300, 100)
 	add_child(_overwrite_dialog)
 	_overwrite_dialog.confirmed.connect(_on_overwrite_confirmed)

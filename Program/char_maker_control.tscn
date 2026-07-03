@@ -94,6 +94,12 @@ render_target_update_mode = 4
 
 [node name="Node3D" parent="HBoxContainer/Viewport/SubViewportContainer/SubViewport" instance=ExtResource("1_or0s6")]
 
+[node name="CreateBtn" type="Button" parent="HBoxContainer/Viewport"]
+layout_mode = 1
+offset_right = 60.0
+offset_bottom = 31.0
+text = "Create"
+
 [node name="OptionButton" type="OptionButton" parent="HBoxContainer/Viewport"]
 layout_mode = 1
 anchors_preset = 5
@@ -106,14 +112,26 @@ grow_horizontal = 2
 
 [node name="SaveBtn" type="Button" parent="HBoxContainer/Viewport"]
 layout_mode = 1
-anchors_preset = 12
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Save"
+
+[node name="SaveCopyBtn" type="Button" parent="HBoxContainer/Viewport"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -60.0
 grow_horizontal = 2
 grow_vertical = 0
-text = "Save Mantle"
+text = "Save Copy"
 
 [node name="Inspector" type="Panel" parent="HBoxContainer"]
 layout_mode = 2
