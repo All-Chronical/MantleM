@@ -8,7 +8,7 @@
 [sub_resource type="World3D" id="World3D_5sad0"]
 environment = SubResource("Environment_qqc3l")
 
-[node name="Char Maker" type="Control" node_paths=PackedStringArray("hierarchyList")]
+[node name="Char Maker" type="Control" node_paths=PackedStringArray("hierarchyList", "mantle_skin")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,6 +19,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_xq6uu")
 hierarchyList = NodePath("HBoxContainer/Hierarchy/VBoxContainer/Tree")
+mantle_skin = NodePath("HBoxContainer/Viewport/SubViewportContainer/SubViewport/Node3D/MantleSkin")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1

@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://doej5vc456moc"]
+[gd_scene load_steps=6 format=3 uid="uid://doej5vc456moc"]
 
 [ext_resource type="Script" path="res://Program/battle_test_player.gd" id="1_player_script"]
-[ext_resource type="PackedScene" uid="uid://d2qa2cavgqenn" path="res://Assets/Rigs/Humanoid_mk6.glb" id="2_rig"]
+[ext_resource type="Script" path="res://Scripts/mantle_skin.gd" id="2_mskin"]
+[ext_resource type="Resource" uid="uid://pm6rtcenr4xq" path="res://Mantles/blank.tres" id="3_ii4n1"]
 
 [sub_resource type="PrismMesh" id="PrismMesh_ra753"]
 
@@ -35,7 +36,7 @@ mesh = SubResource("PrismMesh_ra753")
 transform = Transform3D(0.965926, 0.12941, 0.224144, -0.258819, 0.482963, 0.836516, 0, -0.866025, 0.5, 0, 4, 2)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.883152, -0.135064, 0.449221, 1.55962e-08, 0.957651, 0.287931, -0.469086, -0.254287, 0.845752, 3.64819, 2.02336, 8.53634)
+transform = Transform3D(0.883152, -0.135064, 0.449221, -0.121361, 0.859257, 0.496939, -0.453115, -0.493391, 0.742464, 3.64819, 5.19009, 8.53634)
 current = true
 
 [node name="Player" type="CharacterBody3D" parent="."]
@@ -58,5 +59,7 @@ shape = SubResource("CapsuleShape3D_player")
 [node name="Skin" type="Node3D" parent="Player"]
 transform = Transform3D(0.158, 0, 0, 0, 0.158, 0, 0, 0, 0.158, 0, 0.277949, 0)
 
-[node name="Rig" parent="Player/Skin" instance=ExtResource("2_rig")]
+[node name="MantleSkin" type="Node3D" parent="Player/Skin"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
+script = ExtResource("2_mskin")
+mantle = ExtResource("3_ii4n1")

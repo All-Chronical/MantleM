@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://ck1uc016b80fj"]
 
-[ext_resource type="PackedScene" uid="uid://d2qa2cavgqenn" path="res://Assets/Rigs/Humanoid_mk6.glb" id="1_741eq"]
+[ext_resource type="Script" path="res://Scripts/mantle_skin.gd" id="1_mskin"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0dt0o"]
 
@@ -18,6 +18,6 @@ fov = 45.0
 transform = Transform3D(1, 0, 0, 0, -0.930418, 0.366501, 0, -0.366501, -0.930418, 0, 14.8051, 0)
 light_energy = 0.604
 
-[node name="Humanoid_mk6" parent="." instance=ExtResource("1_741eq")]
+[node name="MantleSkin" type="Node3D" parent="."]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, -3.70471)
-visible = false
+script = ExtResource("1_mskin")
