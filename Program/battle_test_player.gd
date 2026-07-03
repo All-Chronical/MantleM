@@ -16,7 +16,8 @@ var _jump_hold_time := 0.0
 
 @onready var _skin: Node3D = $Skin
 @onready var _camera: Camera3D = get_viewport().get_camera_3d()
-@onready var _anim_player: AnimationPlayer = $Skin/Rig/AnimationPlayer
+@onready var _mantle_skin: MantleSkin = $Skin/MantleSkin
+@onready var _anim_player: AnimationPlayer = _mantle_skin.get_animation_player()
 
 
 func _physics_process(delta: float) -> void:

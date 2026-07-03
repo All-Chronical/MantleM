@@ -73,9 +73,9 @@ func spawn_cube(cube_idx: int, bone_idx: int, pos: Vector3, color: Color, scl: V
 	mat.albedo_color = color
 	mesh_inst.material_override = mat
 	attachment.add_child(mesh_inst)
+	mesh_inst.position = pos
 	mesh_inst.scale = scl
 	_cube_meshes[cube_idx] = mesh_inst
-	_apply_cube_position.call_deferred(cube_idx, pos)
 
 func despawn_cube(del_idx: int) -> void:
 	if _cube_meshes.has(del_idx):
@@ -89,9 +89,7 @@ func despawn_cube(del_idx: int) -> void:
 
 func update_cube_position(cube_idx: int, pos: Vector3) -> void:
 	if _cube_meshes.has(cube_idx):
-		var mesh_inst = _cube_meshes[cube_idx]
-		var bone_origin = mesh_inst.get_parent().global_position
-		mesh_inst.global_position = bone_origin + pos
+		_cube_meshes[cube_idx].position = pos
 
 func update_cube_color(cube_idx: int, color: Color) -> void:
 	if _cube_meshes.has(cube_idx):
@@ -280,14 +278,6 @@ func _spawn_all_flat_meshes() -> void:
 		var order_pos: int = mantle.flatBoneIndices[i]
 		var bone_idx: int = bone_order[order_pos]
 		spawn_flat(i, bone_idx, mantle.flatPositions[i], mantle.flatColors[i], mantle.flatScales[i])
-
-func _apply_cube_position(cube_idx: int, pos: Vector3) -> void:
-	if not _cube_meshes.has(cube_idx):
-		return
-	var mesh_inst = _cube_meshes[cube_idx]
-	if not is_instance_valid(mesh_inst):
-		return
-	mesh_inst.global_position = mesh_inst.get_parent().global_position + pos
 
 func _get_bone_order(rig_type: int) -> PackedInt32Array:
 	if _bone_order_cache.has(rig_type):
