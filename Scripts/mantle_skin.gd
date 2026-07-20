@@ -2,8 +2,8 @@ extends Node3D
 class_name MantleSkin
 
 const RIG_SCENES: Dictionary = {
-	0: "res://Assets/Rigs/Humanoid_mk6.glb",
-	1: "res://Assets/Rigs/Humanoid_mk8.glb",
+	0: "res://Assets/Rigs/humanoid_mk6.tscn",
+	1: "res://Assets/Rigs/humanoid_mk8.tscn",
 }
 
 @export var mantle: Mantle:

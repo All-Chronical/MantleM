@@ -1,12 +1,14 @@
-[gd_resource type="AnimationLibrary" load_steps=4 format=3]
+[gd_resource type="AnimationLibrary" load_steps=5 format=3 uid="uid://2fw0fwkjbtcm"]
 
 [ext_resource type="Animation" uid="uid://crwmsu6pu0gog" path="res://Assets/Anims/protohumanoid/StockIdle.res" id="1_57miv"]
 [ext_resource type="Animation" uid="uid://cjn7osqi58l30" path="res://Assets/Anims/protohumanoid/StockJump.res" id="2_q0fn7"]
 [ext_resource type="Animation" uid="uid://k2ow1yxb3a7a" path="res://Assets/Anims/protohumanoid/StockMove.res" id="3_q0ysk"]
+[ext_resource type="Animation" uid="uid://817s0jbxjvxl" path="res://Assets/Anims/protohumanoid/StockTPose.res" id="4_2nng2"]
 
 [resource]
 _data = {
 "StockIdle": ExtResource("1_57miv"),
 "StockJump": ExtResource("2_q0fn7"),
-"StockMove": ExtResource("3_q0ysk")
+"StockMove": ExtResource("3_q0ysk"),
+"StockTPose": ExtResource("4_2nng2")
 }
