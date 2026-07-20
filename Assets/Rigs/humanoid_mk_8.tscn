@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3 uid="uid://d16kxsmehwj8h"]
+
+[ext_resource type="PackedScene" uid="uid://b1uwab23sx14m" path="res://Assets/Rigs/Humanoid_mk8.glb" id="1_pssto"]
+[ext_resource type="AnimationLibrary" path="res://Assets/Anims/protohumanoid/classes/stock_animlib.tres" id="2_s4gwx"]
+
+[node name="Humanoid_mk8" instance=ExtResource("1_pssto")]
+
+[node name="Skeleton3D" parent="Armature" index="0"]
+bones/0/rotation = Quaternion(0.000583311, -0.979354, 0.000120492, 0.202153)
+bones/1/position = Vector3(0.890191, 1.62332, -0.922543)
+bones/1/rotation = Quaternion(1.18003e-10, 5.89395e-11, -3.03656e-10, 1)
+bones/3/position = Vector3(-1.5562e-07, 1.37925, 1.64773e-06)
+bones/3/rotation = Quaternion(-0.454557, -0.829675, 0.0806032, 0.313879)
+bones/4/position = Vector3(1.17581e-06, 1.44813, 1.86946e-06)
+bones/5/position = Vector3(-3.58367e-07, 1.78071, -1.00409e-06)
+bones/6/position = Vector3(7.70669e-08, 1.75274, -4.42378e-09)
+bones/6/rotation = Quaternion(0.00389394, -0.202115, -0.0188648, 0.979172)
+bones/7/position = Vector3(-2.11886e-07, 0.420651, -2.98813e-08)
+bones/7/rotation = Quaternion(-0.0684052, -0.0464532, -0.0214179, 0.996345)
+bones/9/rotation = Quaternion(-0.299681, -0.0421943, -0.406619, 0.862016)
+bones/10/position = Vector3(-1.37303e-06, 1.44813, -2.8695e-07)
+bones/13/position = Vector3(1.17114e-07, 0.485261, 2.72552e-06)
+bones/13/rotation = Quaternion(-0.236071, 0.68836, -0.616866, -0.299846)
+bones/14/position = Vector3(-5.54304e-07, 1.85785, 2.59078e-07)
+bones/14/rotation = Quaternion(0.0269562, -2.69533e-07, 3.57034e-08, 0.999637)
+bones/15/position = Vector3(-9.67629e-07, 1.95296, -1.88225e-07)
+bones/17/position = Vector3(-1.16299e-07, 0.485261, 2.77814e-06)
+bones/17/rotation = Quaternion(-0.336557, 0.624056, -0.557946, -0.431253)
+bones/18/position = Vector3(-7.69637e-08, 1.85785, -3.01482e-07)
+bones/18/rotation = Quaternion(0.0269562, 1.62741e-07, -3.64555e-08, 0.999637)
+bones/19/position = Vector3(7.3982e-07, 1.95296, -3.6119e-07)
+bones/19/rotation = Quaternion(0.00916719, -3.07767e-09, -4.09521e-08, 0.999958)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." index="1"]
+libraries = {
+"stock_animlib": ExtResource("2_s4gwx")
+}

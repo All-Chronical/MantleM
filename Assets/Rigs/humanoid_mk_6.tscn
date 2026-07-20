@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://by2384m2j3cgw"]
+
+[ext_resource type="PackedScene" uid="uid://d2qa2cavgqenn" path="res://Assets/Rigs/Humanoid_mk6.glb" id="1_sf474"]
+[ext_resource type="AnimationLibrary" path="res://Assets/Anims/protohumanoid/classes/brawler_animlib.tres" id="2_n8bsy"]
+[ext_resource type="AnimationLibrary" path="res://Assets/Anims/protohumanoid/classes/stock_animlib.tres" id="3_cg5kr"]
+
+[node name="Humanoid_mk6" instance=ExtResource("1_sf474")]
+
+[node name="Skeleton3D" parent="Armature" index="0"]
+bones/0/rotation = Quaternion(0.000583311, -0.979354, 0.000120492, 0.202153)
+bones/3/rotation = Quaternion(-0.476064, -0.561003, 0.224463, 0.638948)
+bones/9/rotation = Quaternion(-0.497601, 0.626636, -0.247784, 0.54619)
+bones/13/rotation = Quaternion(-0.0109357, 0.744908, -0.666966, -0.0122137)
+bones/17/position = Vector3(-1.22841e-07, 0.485261, 2.65537e-06)
+bones/17/rotation = Quaternion(0.0109356, 0.744908, -0.666966, 0.0122138)
+bones/18/position = Vector3(-7.65105e-08, 1.85785, -8.60544e-08)
+bones/19/position = Vector3(-4.8842e-08, 1.95296, -9.38583e-08)
+bones/19/rotation = Quaternion(0.00916719, -3.07767e-09, -4.09521e-08, 0.999958)
+
+[node name="AnimationPlayer" parent="." index="1"]
+libraries = {
+"brawler": ExtResource("2_n8bsy"),
+"stock_animlib": ExtResource("3_cg5kr")
+}
