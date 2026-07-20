@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://dge6rsws6id2x"]
+
+[ext_resource type="PackedScene" uid="uid://d2qa2cavgqenn" path="res://Assets/Rigs/Humanoid_mk6.glb" id="1_sf474"]
+[ext_resource type="AnimationLibrary" uid="uid://dvyeshtndgh7f" path="res://Assets/Anims/protohumanoid/classes/brawler_animlib.tres" id="2_n8bsy"]
+[ext_resource type="AnimationLibrary" uid="uid://2fw0fwkjbtcm" path="res://Assets/Anims/protohumanoid/classes/stock_animlib.tres" id="3_cg5kr"]
+
+[node name="Humanoid_mk6" instance=ExtResource("1_sf474")]
+
+[node name="Skeleton3D" parent="Armature" index="0"]
+bones/13/rotation = Quaternion(-0.0109357, 0.744908, -0.666966, -0.0122137)
+
+[node name="AnimationPlayer" parent="." index="1"]
+libraries = {
+"brawler": ExtResource("2_n8bsy"),
+"stock_animlib": ExtResource("3_cg5kr")
+}

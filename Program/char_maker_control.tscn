@@ -92,7 +92,7 @@ pivot = NodePath("SubViewport/Node3D/CameraPivot")
 own_world_3d = true
 world_3d = SubResource("World3D_5sad0")
 handle_input_locally = false
-size = Vector2i(2, 2)
+size = Vector2i(381, 648)
 render_target_update_mode = 4
 
 [node name="Node3D" parent="HBoxContainer/Viewport/SubViewportContainer/SubViewport" instance=ExtResource("1_or0s6")]

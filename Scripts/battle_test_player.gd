@@ -53,8 +53,8 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	if not is_on_floor():
-		_anim_player.play("Jump")
+		_anim_player.play("stock_animlib/StockJump")
 	elif move_direction.length() > 0.1:
-		_anim_player.play("Move")
+		_anim_player.play("stock_animlib/StockMove")
 	else:
-		_anim_player.play("Idle")
+		_anim_player.play("stock_animlib/StockIdle")

@@ -14,7 +14,7 @@ mesh = SubResource("PlaneMesh_0dt0o")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.70471)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot"]
-transform = Transform3D(-0.999816, -0.00535599, 0.0184354, 0.00245295, 0.916781, 0.399383, -0.0190403, 0.399354, -0.916599, 0.655, 12.4373, -15.07229)
+transform = Transform3D(-0.999816, -0.00535599, 0.0184354, 0.00245295, 0.916781, 0.399383, -0.0190403, 0.399354, -0.916599, 0.655, 12.4373, -15.0723)
 fov = 45.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
