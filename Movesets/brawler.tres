@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="Moveset" load_steps=3 format=3 uid="uid://d1pxwii6ryktv"]
+
+[ext_resource type="Script" path="res://Resources/moveset.gd" id="1_moveset"]
+[ext_resource type="AnimationLibrary" uid="uid://dvyeshtndgh7f" path="res://Assets/Anims/protohumanoid/classes/brawler_animlib.tres" id="2_animlib"]
+
+[resource]
+script = ExtResource("1_moveset")
+movesetName = "Brawler"
+animLib = ExtResource("2_animlib")
