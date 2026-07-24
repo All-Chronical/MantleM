@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Scripts/battle_test_player.gd" id="1_rsaqh"]
 [ext_resource type="Script" path="res://Scripts/mantle_skin.gd" id="2_mskin"]
-[ext_resource type="Resource" path="res://Mantles/fed.tres" id="3_abrea"]
+[ext_resource type="Resource" uid="uid://xnwi3yrhlhgr" path="res://Mantles/fed.tres" id="3_abrea"]
 
 [sub_resource type="PrismMesh" id="PrismMesh_ra753"]
 
