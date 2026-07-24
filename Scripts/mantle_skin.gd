@@ -6,6 +6,8 @@ const RIG_SCENES: Dictionary = {
 	1: "res://Assets/Rigs/humanoid_mk8.tscn",
 }
 
+const MOVESET_LIB_KEY: String = "moveset"
+
 @export var mantle: Mantle:
 	set(value):
 		mantle = value
@@ -23,6 +25,7 @@ var _current_rig_type: int = -1
 
 var _cube_meshes: Dictionary = {}
 var _flat_meshes: Dictionary = {}
+var _moveset: Moveset
 
 func _ready() -> void:
 	if mantle != null:
@@ -42,6 +45,7 @@ func apply_mantle(m: Mantle) -> void:
 	_apply_shape_keys()
 	_spawn_all_cube_meshes()
 	_spawn_all_flat_meshes()
+	_apply_moveset(m)
 
 func get_skeleton() -> Skeleton3D:
 	return _skeleton
@@ -51,6 +55,9 @@ func get_mesh() -> MeshInstance3D:
 
 func get_animation_player() -> AnimationPlayer:
 	return _anim_player
+
+func get_moveset() -> Moveset:
+	return _moveset
 
 func get_bone_order() -> PackedInt32Array:
 	if _current_rig_type < 0:
@@ -193,6 +200,7 @@ func _clear_rig() -> void:
 	_mesh = null
 	_anim_player = null
 	_current_rig_type = -1
+	_moveset = null
 
 func _forward_port(m: Mantle) -> void:
 	var bone_order := _get_bone_order(m.rigType)
@@ -240,6 +248,18 @@ func _forward_port(m: Mantle) -> void:
 			_flat_scales[i] = Vector3.ONE
 		m.flatScales = _flat_scales
 	print("[MantleSkin] forward-ported, bones=", bone_order.size(), " shapes=", blend_shape_count)
+
+func _apply_moveset(m: Mantle) -> void:
+	if _anim_player == null:
+		return
+	if _anim_player.has_animation_library(MOVESET_LIB_KEY):
+		_anim_player.remove_animation_library(MOVESET_LIB_KEY)
+	_moveset = null
+	if m.moveset == null or m.moveset.animLib == null:
+		return
+	_anim_player.add_animation_library(MOVESET_LIB_KEY, m.moveset.animLib)
+	m.moveset.resolve(MOVESET_LIB_KEY)
+	_moveset = m.moveset
 
 func _apply_base_color() -> void:
 	if mantle == null or _mesh == null:
