@@ -1,10 +1,12 @@
 class_name MantleSerializer
 
 const BLANK_MANTLE_PATH := "res://Mantles/blank.tres"
-const MANTLES_DIR := "res://Mantles/"
+const MANTLES_DIR := "user://Mantles/"
 
 static func list_mantle_paths() -> Array[String]:
 	var paths: Array[String] = []
+	if not DirAccess.dir_exists_absolute(MANTLES_DIR):
+		DirAccess.make_dir_recursive_absolute(MANTLES_DIR)
 	var dir := DirAccess.open(MANTLES_DIR)
 	if dir == null:
 		return paths
