@@ -24,10 +24,13 @@ var _attack_anim_path := ""
 @onready var _skin: Node3D = $Skin
 @onready var _camera: Camera3D = get_viewport().get_camera_3d()
 @onready var _mantle_skin: MantleSkin = $Skin/MantleSkin
-@onready var _anim_player: AnimationPlayer = _mantle_skin.get_animation_player()
+var _anim_player: AnimationPlayer
 
 
 func _ready() -> void:
+	if _mantle_skin.mantle == null:
+		_mantle_skin.apply_mantle(Global.selected_mantle)
+	_anim_player = _mantle_skin.get_animation_player()
 	_anim_player.animation_finished.connect(_on_animation_finished)
 
 
