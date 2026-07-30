@@ -92,7 +92,7 @@ pivot = NodePath("SubViewport/Node3D/CameraPivot")
 own_world_3d = true
 world_3d = SubResource("World3D_5sad0")
 handle_input_locally = false
-size = Vector2i(381, 648)
+size = Vector2i(347, 648)
 render_target_update_mode = 4
 
 [node name="Node3D" parent="HBoxContainer/Viewport/SubViewportContainer/SubViewport" instance=ExtResource("1_or0s6")]
@@ -425,3 +425,7 @@ text = "Flat Color:"
 visible = false
 custom_minimum_size = Vector2(0, 75)
 layout_mode = 2
+
+[node name="EtrBtlBtn" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+text = "Enter Battle"

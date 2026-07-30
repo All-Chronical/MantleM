@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://okdn1jspxg56"]
+[gd_scene load_steps=5 format=3 uid="uid://okdn1jspxg56"]
 
 [ext_resource type="Script" path="res://Scripts/battle_test_player.gd" id="1_rsaqh"]
 [ext_resource type="Script" path="res://Scripts/mantle_skin.gd" id="2_mskin"]
-[ext_resource type="Resource" uid="uid://xnwi3yrhlhgr" path="res://Mantles/fed.tres" id="3_abrea"]
 
 [sub_resource type="PrismMesh" id="PrismMesh_ra753"]
 
@@ -62,4 +61,3 @@ transform = Transform3D(0.158, 0, 0, 0, 0.158, 0, 0, 0, 0.158, 0, 0.277949, 0)
 [node name="MantleSkin" type="Node3D" parent="Player/Skin"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 script = ExtResource("2_mskin")
-mantle = ExtResource("3_abrea")

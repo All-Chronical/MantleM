@@ -13,6 +13,7 @@ extends Control
 @onready var _rig_color_picker: ColorPickerButton = $HBoxContainer/Inspector/VBoxContainer/BaseColorPicker
 @onready var _save_btn: Button = $HBoxContainer/Viewport/SaveBtn
 @onready var _save_copy_btn: Button = $HBoxContainer/Viewport/SaveCopyBtn
+@onready var _enter_battle_btn: Button = $HBoxContainer/EtrBtlBtn
 @onready var _shape_keys_label: Label = $HBoxContainer/Inspector/VBoxContainer/ShapeKeysLabel
 @onready var _shape_key_container: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/ShapeKeyContainer
 @onready var _shape_key_template: VBoxContainer = $HBoxContainer/Inspector/VBoxContainer/ShapeKeyContainer/ShapeKeyTemplate
@@ -72,8 +73,10 @@ func _ready():
 	_create_btn.pressed.connect(_on_create_pressed)
 	_save_btn.disabled = true
 	_save_copy_btn.disabled = true
+	_enter_battle_btn.disabled = true
 	_save_btn.pressed.connect(_on_save_pressed)
 	_save_copy_btn.pressed.connect(_on_save_copy_pressed)
+	_enter_battle_btn.pressed.connect(_on_enter_battle_pressed)
 	_build_create_dialog()
 	_build_save_copy_dialog()
 	_build_overwrite_dialog()
@@ -160,6 +163,7 @@ func _on_mantle_selected(id: int) -> void:
 	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " notes_size=", _current_mantle.notes.size(), " shape_keys=", _current_mantle.shapeKeyValues.size())
 	_save_btn.disabled = false
 	_save_copy_btn.disabled = false
+	_enter_battle_btn.disabled = false
 	_rebuild_hierarchy()
 	_on_bone_deselected()
 
@@ -627,10 +631,18 @@ func _load_created_mantle(m: Mantle, path: String, mantle_name: String) -> void:
 	_current_bone_order = mantle_skin.get_bone_order()
 	_save_btn.disabled = false
 	_save_copy_btn.disabled = false
+	_enter_battle_btn.disabled = false
 	_refresh_mantle_options()
 	_select_mantle_by_name(mantle_name)
 	_rebuild_hierarchy()
 	_on_bone_deselected()
+
+func _on_enter_battle_pressed() -> void:
+	if _original_mantle == null:
+		return
+	_original_mantle.moveset = load("res://Movesets/brawler.tres") as Moveset
+	Global.selected_mantle = _original_mantle
+	get_tree().change_scene_to_file("res://Program/battle_test.tscn")
 
 func _on_save_pressed() -> void:
 	if _current_mantle == null:
