@@ -35,8 +35,9 @@ mesh = SubResource("PrismMesh_ra753")
 transform = Transform3D(0.965926, 0.12941, 0.224144, -0.258819, 0.482963, 0.836516, 0, -0.866025, 0.5, 0, 4, 2)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.883152, -0.135064, 0.449221, -0.121361, 0.859257, 0.496939, -0.453115, -0.493391, 0.742464, 3.64819, 5.19009, 8.53634)
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 2.391, 6.453, 13.989)
 current = true
+fov = 53.3
 
 [node name="Player" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.59407, 0)
