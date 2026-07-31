@@ -19,6 +19,11 @@ config/icon="res://icon.svg"
 
 Global="*res://Scripts/global.gd"
 
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/scale=0.5
+
 [dotnet]
 
 project/assembly_name="MantleM Project"
