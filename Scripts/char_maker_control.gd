@@ -108,7 +108,7 @@ func _ready():
 func _rebuild_hierarchy() -> void:
 	hierarchyList.clear()
 	var root := hierarchyList.create_item()
-	root.set_text(0, "Rig")
+	root.set_text(0, "Armature")
 	root.set_metadata(0, -1)
 	var skeleton := mantle_skin.get_skeleton()
 	if skeleton == null:
@@ -125,12 +125,12 @@ func _add_bone_to_tree(bone_idx: int, parent_item: TreeItem, skeleton: Skeleton3
 		for i in range(_current_mantle.cubeBoneIndices.size()):
 			if _current_mantle.cubeBoneIndices[i] == order_pos:
 				var cube_item := hierarchyList.create_item(item)
-				cube_item.set_text(0, "Cube Part")
+				cube_item.set_text(0, "Clay Part")
 				cube_item.set_metadata(0, {"type": 1, "idx": i})
 		for i in range(_current_mantle.flatBoneIndices.size()):
 			if _current_mantle.flatBoneIndices[i] == order_pos:
 				var flat_item := hierarchyList.create_item(item)
-				flat_item.set_text(0, "Flat Part")
+				flat_item.set_text(0, "Cardboard Part")
 				flat_item.set_metadata(0, {"type": 2, "idx": i})
 	for child_idx in skeleton.get_bone_children(bone_idx):
 		_add_bone_to_tree(child_idx, item, skeleton)
