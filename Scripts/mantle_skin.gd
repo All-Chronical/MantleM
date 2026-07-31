@@ -205,10 +205,6 @@ func _clear_rig() -> void:
 func _forward_port(m: Mantle) -> void:
 	var bone_order := _get_bone_order(m.rigType)
 	var blend_shape_count: int = _blend_shape_cache[m.rigType].size()
-	var _notes := m.notes
-	if _notes.size() < bone_order.size():
-		_notes.resize(bone_order.size())
-		m.notes = _notes
 	var _shape_keys := m.shapeKeyValues
 	if _shape_keys.size() < blend_shape_count:
 		_shape_keys.resize(blend_shape_count)

@@ -5,8 +5,6 @@ extends Control
 
 @onready var _create_btn: Button = $HBoxContainer/Viewport/CreateBtn
 @onready var _mantle_picker: OptionButton = $HBoxContainer/Viewport/OptionButton
-@onready var _note_label: Label = $HBoxContainer/Inspector/VBoxContainer/Label
-@onready var _note_edit: TextEdit = $HBoxContainer/Inspector/VBoxContainer/TextEdit
 @onready var _rig_note_label: Label = $HBoxContainer/Inspector/VBoxContainer/RigNoteLabel
 @onready var _rig_note_edit: TextEdit = $HBoxContainer/Inspector/VBoxContainer/RigNoteEdit
 @onready var _rig_color_label: Label = $HBoxContainer/Inspector/VBoxContainer/BaseColorLabel
@@ -81,7 +79,6 @@ func _ready():
 	_build_save_copy_dialog()
 	_build_overwrite_dialog()
 
-	_note_edit.text_changed.connect(_on_note_changed)
 	_rig_note_edit.text_changed.connect(_on_rig_note_changed)
 	_rig_color_picker.color_changed.connect(_on_color_changed)
 	_cube_x_slider.value_changed.connect(_on_cube_slider_changed)
@@ -160,7 +157,7 @@ func _on_mantle_selected(id: int) -> void:
 	_current_mantle = _original_mantle.duplicate()
 	mantle_skin.apply_mantle(_current_mantle)
 	_current_bone_order = mantle_skin.get_bone_order()
-	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " notes_size=", _current_mantle.notes.size(), " shape_keys=", _current_mantle.shapeKeyValues.size())
+	print("[Mantle] loaded, bone_count=", _current_bone_order.size(), " shape_keys=", _current_mantle.shapeKeyValues.size())
 	_save_btn.disabled = false
 	_save_copy_btn.disabled = false
 	_enter_battle_btn.disabled = false
@@ -191,29 +188,14 @@ func _on_bone_selected() -> void:
 		print("[Bone] order_pos not found for bone_idx=", bone_idx)
 		return
 	_current_order_pos = order_pos
-	var stored_note: String = _current_mantle.notes[order_pos]
-	print("[Bone] name=", bone_name, " idx=", bone_idx, " order_pos=", order_pos, " stored_note='" , stored_note, "'")
-	_updating_attrs = true
-	_note_edit.text = stored_note
-	_updating_attrs = false
-	print("[Bone] TextEdit.text after set='" , _note_edit.text, "'")
+	print("[Bone] name=", bone_name, " idx=", bone_idx, " order_pos=", order_pos)
 	_selected_cube_idx = -1
 	_selected_flat_idx = -1
 	_selected_part_type = 0
 	_hide_all_attrs()
-	_note_label.show()
-	_note_edit.show()
 	_add_cube_btn.visible = true
 	_add_flat_btn.visible = true
 	_del_part_btn.visible = false
-
-func _on_note_changed() -> void:
-	if _updating_attrs or _current_mantle == null or _current_order_pos < 0:
-		return
-	var _notes := _current_mantle.notes
-	_notes[_current_order_pos] = _note_edit.text
-	_current_mantle.notes = _notes
-	print("[Note] pos=", _current_order_pos, " text=", _note_edit.text)
 
 func _on_cube_selected(cube_idx: int) -> void:
 	_selected_cube_idx = cube_idx
@@ -276,9 +258,6 @@ func _on_bone_deselected() -> void:
 	_selected_cube_idx = -1
 	_selected_flat_idx = -1
 	_selected_part_type = 0
-	_updating_attrs = true
-	_note_edit.text = ""
-	_updating_attrs = false
 	_hide_all_attrs()
 	_add_cube_btn.visible = true
 	_add_flat_btn.visible = true
@@ -535,11 +514,6 @@ func _select_bone_by_order_pos(order_pos: int) -> void:
 		hierarchyList.set_selected(found, 0)
 		_current_order_pos = order_pos
 		_hide_all_attrs()
-		_note_label.show()
-		_note_edit.show()
-		_updating_attrs = true
-		_note_edit.text = _current_mantle.notes[order_pos]
-		_updating_attrs = false
 		_add_cube_btn.visible = true
 		_add_flat_btn.visible = true
 		_del_part_btn.visible = false
@@ -557,8 +531,6 @@ func _find_bone_item(item: TreeItem, bone_idx: int) -> TreeItem:
 	return null
 
 func _hide_all_attrs() -> void:
-	_note_label.hide()
-	_note_edit.hide()
 	_rig_note_label.hide()
 	_rig_note_edit.hide()
 	_rig_color_label.hide()

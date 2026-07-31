@@ -149,16 +149,6 @@ offset_left = 15.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
-layout_mode = 2
-text = "Notes:"
-
-[node name="TextEdit" type="TextEdit" parent="HBoxContainer/Inspector/VBoxContainer"]
-custom_minimum_size = Vector2(0, 150)
-layout_mode = 2
-size_flags_vertical = 0
-placeholder_text = "notes here"
-
 [node name="RigNoteLabel" type="Label" parent="HBoxContainer/Inspector/VBoxContainer"]
 layout_mode = 2
 text = "Rig Note:"
