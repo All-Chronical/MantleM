@@ -1,12 +1,29 @@
 [gd_scene load_steps=3 format=3 uid="uid://dge6rsws6id2x"]
 
 [ext_resource type="PackedScene" uid="uid://d2qa2cavgqenn" path="res://Assets/Rigs/Humanoid_mk6.glb" id="1_sf474"]
-[ext_resource type="AnimationLibrary" uid="uid://2fw0fwkjbtcm" path="res://Assets/Anims/protohumanoid/classes/stock_animlib.tres" id="3_cg5kr"]
+[ext_resource type="AnimationLibrary" uid="uid://2fw0fwkjbtcm" path="res://Assets/Anims/protohumanoid/Stock/stock_animlib.tres" id="3_cg5kr"]
 
 [node name="Humanoid_mk6" instance=ExtResource("1_sf474")]
 
 [node name="Skeleton3D" parent="Armature" index="0"]
-bones/13/rotation = Quaternion(-0.0109357, 0.744908, -0.666966, -0.0122137)
+bones/1/position = Vector3(0.890191, 1.62332, -0.922543)
+bones/1/rotation = Quaternion(1.18003e-10, 5.89395e-11, -3.03656e-10, 1)
+bones/3/position = Vector3(-1.5562e-07, 1.37925, 1.64773e-06)
+bones/3/rotation = Quaternion(-0.454557, -0.829675, 0.0806032, 0.313879)
+bones/4/position = Vector3(1.17581e-06, 1.44813, 1.86946e-06)
+bones/5/position = Vector3(-3.58367e-07, 1.78071, -1.00409e-06)
+bones/7/rotation = Quaternion(-0.0684052, -0.0464532, -0.0214179, 0.996345)
+bones/9/rotation = Quaternion(-0.299681, -0.0421943, -0.406619, 0.862016)
+bones/10/position = Vector3(-1.37303e-06, 1.44813, -2.8695e-07)
+bones/13/rotation = Quaternion(-0.236071, 0.68836, -0.616866, -0.299846)
+bones/14/position = Vector3(-5.54304e-07, 1.85785, 2.59078e-07)
+bones/15/position = Vector3(-9.67629e-07, 1.95296, -1.88225e-07)
+bones/17/rotation = Quaternion(-0.336557, 0.624056, -0.557946, -0.431253)
+bones/18/position = Vector3(-7.69637e-08, 1.85785, -3.01482e-07)
+bones/19/position = Vector3(7.3982e-07, 1.95296, -3.6119e-07)
+
+[node name="Left Arm Bend" parent="Armature/Skeleton3D" index="0"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 
 [node name="AnimationPlayer" parent="." index="1"]
 libraries = {
