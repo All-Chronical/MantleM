@@ -1,5 +1,11 @@
 extends CharacterBody3D
 
+var move_input_vector := Vector2.ZERO
+var is_jump_just_pressed := false
+var is_jump_pressed := false
+var is_light_just_pressed := false
+var is_heavy_just_pressed := false
+
 enum AttackButton { LIGHT, HEAVY }
 enum Mobility { NEUTRAL, DIRECTIONAL, AIRBORNE }
 
@@ -35,7 +41,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var raw_input := move_input_vector
 	var mobility: Mobility
 	if not is_on_floor():
 		mobility = Mobility.AIRBORNE
@@ -45,9 +51,9 @@ func _physics_process(delta: float) -> void:
 		mobility = Mobility.NEUTRAL
 
 	if not _attack_active:
-		if Input.is_action_just_pressed("light_attack"):
+		if is_light_just_pressed:
 			_try_attack(AttackButton.LIGHT, mobility)
-		elif Input.is_action_just_pressed("heavy_attack"):
+		elif is_heavy_just_pressed:
 			_try_attack(AttackButton.HEAVY, mobility)
 
 	var process_movement_input := not (_attack_active and _attack_mobility == Mobility.NEUTRAL)
@@ -62,7 +68,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_direction.x * move_speed
 		velocity.z = move_direction.z * move_speed
 
-	if not _attack_active and Input.is_action_just_pressed("jump") and is_on_floor():
+	if not _attack_active and is_jump_just_pressed and is_on_floor():
 		velocity.y = jump_initial_impulse
 		_is_jumping = true
 		_jump_hold_time = 0.0
@@ -70,7 +76,7 @@ func _physics_process(delta: float) -> void:
 	velocity.y += gravity * delta
 
 	if _is_jumping:
-		if not _attack_active and Input.is_action_pressed("jump") and velocity.y > 0.0 and _jump_hold_time < jump_max_hold_time:
+		if not _attack_active and is_jump_pressed and velocity.y > 0.0 and _jump_hold_time < jump_max_hold_time:
 			velocity.y += jump_hold_force * delta
 			_jump_hold_time += delta
 		else:
