@@ -31,6 +31,7 @@ var _attack_anim_path := ""
 @onready var _camera: Camera3D = get_viewport().get_camera_3d()
 @onready var _mantle_skin: MantleSkin = $Skin/MantleSkin
 var _anim_player: AnimationPlayer
+var _battle_manager: Node
 
 
 func _ready() -> void:
@@ -38,6 +39,16 @@ func _ready() -> void:
 		_mantle_skin.apply_mantle(Global.selected_mantle)
 	_anim_player = _mantle_skin.get_animation_player()
 	_anim_player.animation_finished.connect(_on_animation_finished)
+
+	var managers := get_tree().get_nodes_in_group("battle_manager")
+	if not managers.is_empty():
+		_battle_manager = managers[0]
+		_battle_manager.register(self)
+
+
+func _exit_tree() -> void:
+	if _battle_manager:
+		_battle_manager.deregister(self)
 
 
 func _physics_process(delta: float) -> void:
@@ -115,7 +126,21 @@ func _try_attack(button: AttackButton, mobility: Mobility) -> void:
 	_attack_anim_path = moveset.get_play_path(slot)
 	_attack_active = true
 	_attack_mobility = mobility
+	_apply_aim_assist()
 	_anim_player.play(_attack_anim_path)
+
+
+func _apply_aim_assist() -> void:
+	if not _battle_manager:
+		return
+	var current_facing := Vector3.FORWARD.rotated(Vector3.UP, _skin.rotation.y)
+	var target_pos: Variant = _battle_manager.find_target(self, current_facing)
+	if target_pos == null:
+		return
+	var to_target: Vector3 = target_pos - global_position
+	to_target.y = 0.0
+	if to_target.length_squared() > 0.0001:
+		_last_input_direction = to_target.normalized()
 
 
 func _on_animation_finished(anim_name: StringName) -> void:
