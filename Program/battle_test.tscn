@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Scripts/body.gd" id="1_en1ci"]
 [ext_resource type="Script" path="res://Scripts/mantle_skin.gd" id="2_mskin"]
-[ext_resource type="Resource" uid="uid://dwfdemcxp1mkj" path="res://Mantles/art monster.tres" id="3_y446x"]
+[ext_resource type="Resource" uid="uid://pm6rtcenr4xq" path="res://Mantles/blank.tres" id="4_418v4"]
 [ext_resource type="Script" path="res://Scripts/input_driver.gd" id="5_indrv"]
 
 [sub_resource type="PrismMesh" id="PrismMesh_ra753"]
@@ -55,7 +55,6 @@ jump_hold_force = 43.0
 gravity = -50.0
 
 [node name="InputDriver" type="Node" parent="Player"]
-process_priority = -1
 script = ExtResource("5_indrv")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
@@ -68,4 +67,30 @@ transform = Transform3D(0.158, 0, 0, 0, 0.158, 0, 0, 0, 0.158, 0, 0.277949, 0)
 [node name="MantleSkin" type="Node3D" parent="Player/Skin"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 script = ExtResource("2_mskin")
-mantle = ExtResource("3_y446x")
+
+[node name="Player2" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.93857, 2.59407, 0)
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+axis_lock_angular_z = true
+floor_snap_length = 0.3
+script = ExtResource("1_en1ci")
+move_speed = 5.0
+rotation_speed = 6.0
+jump_initial_impulse = 14.0
+jump_hold_force = 43.0
+gravity = -50.0
+
+[node name="InputDriver" type="Node" parent="Player2"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="Skin" type="Node3D" parent="Player2"]
+transform = Transform3D(0.158, 0, 0, 0, 0.158, 0, 0, 0, 0.158, 0, 0.277949, 0)
+
+[node name="MantleSkin" type="Node3D" parent="Player2/Skin"]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
+script = ExtResource("2_mskin")
+mantle = ExtResource("4_418v4")
