@@ -612,7 +612,7 @@ func _load_created_mantle(m: Mantle, path: String, mantle_name: String) -> void:
 func _on_enter_battle_pressed() -> void:
 	if _original_mantle == null:
 		return
-	_original_mantle.moveset = load("res://Movesets/brawler.tres") as Moveset
+	_original_mantle.moveset = load("res://Movesets/brawling.tres") as Moveset
 	Global.selected_mantle = _original_mantle
 	get_tree().change_scene_to_file("res://Program/battle_test.tscn")
 

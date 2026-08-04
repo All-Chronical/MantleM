@@ -1,0 +1,16 @@
+[gd_resource type="AnimationLibrary" load_steps=6 format=3 uid="uid://c6k320acchcwj"]
+
+[ext_resource type="Animation" uid="uid://b4l0atwcutwrq" path="res://Assets/Anims/protohumanoid/BrawlingDH.res" id="1_7d1eb"]
+[ext_resource type="Animation" uid="uid://dl35wn5u18hu2" path="res://Assets/Anims/protohumanoid/BrawlingDL.res" id="2_i1rn0"]
+[ext_resource type="Animation" uid="uid://djxcc2pagdpp0" path="res://Assets/Anims/protohumanoid/BrawlingNC.res" id="3_g3m4q"]
+[ext_resource type="Animation" uid="uid://bukllu6sewf2n" path="res://Assets/Anims/protohumanoid/BrawlingNH.res" id="4_i8tpx"]
+[ext_resource type="Animation" uid="uid://cw3gm1i5xn4or" path="res://Assets/Anims/protohumanoid/BrawlingNL.res" id="5_trjjd"]
+
+[resource]
+_data = {
+"BrawlerDH": ExtResource("1_7d1eb"),
+"BrawlerDL": ExtResource("2_i1rn0"),
+"BrawlerNC": ExtResource("3_g3m4q"),
+"BrawlerNH": ExtResource("4_i8tpx"),
+"BrawlerNL": ExtResource("5_trjjd")
+}
