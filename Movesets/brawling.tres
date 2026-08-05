@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Moveset" load_steps=3 format=3 uid="uid://bl80777d56k7g"]
+[gd_resource type="Resource" script_class="Moveset" load_steps=4 format=3 uid="uid://bgll8rdj7m8x0"]
 
-[ext_resource type="AnimationLibrary" uid="uid://c6k320acchcwj" path="res://Assets/Anims/protohumanoid/classes/brawlin_animlib.tres" id="1_c3kr8"]
-[ext_resource type="Script" path="res://Resources/moveset.gd" id="2_mrxcw"]
+[ext_resource type="Script" path="res://Resources/moveset.gd" id="1_f1d1n"]
+[ext_resource type="AnimationLibrary" uid="uid://c6k320acchcwj" path="res://Assets/Anims/protohumanoid/Brawling/brawling_proto_lib.tres" id="1_uvbdj"]
+[ext_resource type="AnimationLibrary" uid="uid://bqe48syajplqd" path="res://Assets/Anims/humanoid/Brawling/brawling_humanoid_lib.tres" id="2_1x6sf"]
 
 [resource]
-script = ExtResource("2_mrxcw")
-movesetName = "Brawler"
-animLib = ExtResource("1_c3kr8")
+script = ExtResource("1_f1d1n")
+movesetName = "Brawling"
+animLibs = Array[AnimationLibrary]([ExtResource("1_uvbdj"), ExtResource("2_1x6sf")])

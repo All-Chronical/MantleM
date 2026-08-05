@@ -251,10 +251,15 @@ func _apply_moveset(m: Mantle) -> void:
 	if _anim_player.has_animation_library(MOVESET_LIB_KEY):
 		_anim_player.remove_animation_library(MOVESET_LIB_KEY)
 	_moveset = null
-	if m.moveset == null or m.moveset.animLib == null:
+	if m.moveset == null or m.moveset.animLibs.is_empty():
 		return
-	_anim_player.add_animation_library(MOVESET_LIB_KEY, m.moveset.animLib)
-	m.moveset.resolve(MOVESET_LIB_KEY)
+	var anim_lib: AnimationLibrary = m.moveset.animLibs[0]
+	if m.rigType >= 0 and m.rigType < m.moveset.animLibs.size() and m.moveset.animLibs[m.rigType] != null:
+		anim_lib = m.moveset.animLibs[m.rigType]
+	if anim_lib == null:
+		return
+	_anim_player.add_animation_library(MOVESET_LIB_KEY, anim_lib)
+	m.moveset.resolve(MOVESET_LIB_KEY, anim_lib)
 	_moveset = m.moveset
 
 func _apply_base_color() -> void:

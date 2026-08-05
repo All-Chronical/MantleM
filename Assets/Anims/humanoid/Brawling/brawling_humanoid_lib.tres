@@ -1,0 +1,8 @@
+[gd_resource type="AnimationLibrary" load_steps=2 format=3 uid="uid://bqe48syajplqd"]
+
+[ext_resource type="Animation" uid="uid://j5a2uhfb6ogt" path="res://Assets/Anims/humanoid/Brawling/BrawlingDH.res" id="1_2ske6"]
+
+[resource]
+_data = {
+"BrawlingDH": ExtResource("1_2ske6")
+}
